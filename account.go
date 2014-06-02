@@ -1,5 +1,7 @@
 package main
 
+import "errors"
+
 /*
 #cgo LDFLAGS: -laqbanking
 #cgo LDFLAGS: -lgwenhywfar
@@ -8,7 +10,6 @@ package main
 #include <aqbanking5/aqbanking/banking.h>
 */
 import "C"
-import "errors"
 
 type Account struct {
 	Name          string

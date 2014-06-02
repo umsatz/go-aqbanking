@@ -1,5 +1,10 @@
 package main
 
+import (
+	"errors"
+	"fmt"
+)
+
 /*
 #cgo LDFLAGS: -laqbanking
 #cgo LDFLAGS: -lgwenhywfar
@@ -8,10 +13,6 @@ package main
 #include <aqbanking5/aqbanking/banking.h>
 */
 import "C"
-import (
-	"errors"
-	"fmt"
-)
 
 type AQBankingVersion struct {
 	Major      int

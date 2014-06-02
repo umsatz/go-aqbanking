@@ -5,19 +5,13 @@ import (
 	"log"
 )
 
-func main() {
-	acc, err := NewAQBanking("local")
-	if err != nil {
-		log.Fatal("unable to init aqbanking: %v", err)
-	}
-	defer acc.Free()
-
-	fmt.Printf("using aqbanking %d.%d.%d\n", acc.Version.Major, acc.Version.Minor, acc.Version.Patchlevel)
-
-	accounts, err := acc.Accounts()
+func listAccounts(ab *AQBanking) {
+	accounts, err := ab.Accounts()
 	if err != nil {
 		log.Fatal("unable to list accounts: %v", err)
 	}
+
+	fmt.Println("%%\nAccounts")
 	for _, account := range accounts {
 		fmt.Printf(`## %v
 Owner: %v
@@ -41,4 +35,41 @@ BIC: %v
 			account.BIC,
 		)
 	}
+}
+
+func listUsers(ab *AQBanking) {
+	users, err := ab.Users()
+	if err != nil {
+		log.Fatal("unable to list users: %v", err)
+	}
+
+	fmt.Println("%%\nUsers")
+	for _, user := range users {
+		fmt.Printf(`## %v
+Name: %v
+CustomerId: %v
+
+`,
+			user.UserId,
+			user.Name,
+			user.CustomerId,
+		)
+	}
+}
+
+func main() {
+	ab, err := NewAQBanking("local")
+	if err != nil {
+		log.Fatal("unable to init aqbanking: %v", err)
+	}
+	defer ab.Free()
+
+	fmt.Printf("using aqbanking %d.%d.%d\n",
+		ab.Version.Major,
+		ab.Version.Minor,
+		ab.Version.Patchlevel,
+	)
+
+	listAccounts(ab)
+	listUsers(ab)
 }
