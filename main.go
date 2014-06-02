@@ -6,7 +6,7 @@ import (
 )
 
 func main() {
-	acc, err := NewAQBanking("golib")
+	acc, err := NewAQBanking("local")
 	if err != nil {
 		log.Fatal("unable to init aqbanking: %v", err)
 	}
@@ -19,24 +19,26 @@ func main() {
 		log.Fatal("unable to list accounts: %v", err)
 	}
 	for _, account := range accounts {
-		fmt.Printf(`Owner: %v
-Name: %v
+		fmt.Printf(`## %v
+Owner: %v
 Currency: %v
 Country: %v
 AccountNumber: %v
 BankCode: %v
 Bank: %v
 IBAN: %v
+BIC: %v
 
 `,
-			account.Owner,
 			account.Name,
+			account.Owner,
 			account.Currency,
 			account.Country,
 			account.AccountNumber,
 			account.BankCode,
 			account.Bank.Name,
 			account.IBAN,
+			account.BIC,
 		)
 	}
 }
