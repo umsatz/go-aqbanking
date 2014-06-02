@@ -1,9 +1,9 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"log"
-	"unsafe"
 )
 
 /*
@@ -15,34 +15,47 @@ import (
 */
 import "C"
 
-// type AQBanking struct {
-// 	Name string
-// 	Ptr  *C.AB_BANKING
-// }
+type AQBanking struct {
+	Name string
+	Ptr  *C.AB_BANKING
+	Gui  *C.GWEN_GUI
+}
 
-// func NewAQBanking(name string) *AQBanking {
-// 	inst := &AQBanking{name, nil}
-// }
+func NewAQBanking(name string) (*AQBanking, error) {
+	inst := &AQBanking{name, nil, nil}
+
+	inst.Ptr = C.AB_Banking_new(C.CString(inst.Name), nil, 0)
+	if err := C.AB_Banking_Init(inst.Ptr); err != 0 {
+		return nil, errors.New(fmt.Sprintf("unable to initialized aqbanking: %d", err))
+	}
+	if err := C.AB_Banking_OnlineInit(inst.Ptr); err != 0 {
+		return nil, errors.New(fmt.Sprintf("unable to initialized aqbanking: %d", err))
+	}
+
+	inst.Gui = C.GWEN_Gui_new()
+	C.GWEN_Gui_SetGui(inst.Gui)
+
+	return inst, nil
+}
+
+func (ab *AQBanking) Free() error {
+	if err := C.AB_Banking_OnlineFini(ab.Ptr); err != 0 {
+		return errors.New(fmt.Sprintf("unable to free aqbanking online: %d\n", err))
+	}
+
+	C.AB_Banking_Fini(ab.Ptr)
+	C.AB_Banking_free(ab.Ptr)
+	return nil
+}
 
 func main() {
-	var ab *C.AB_BANKING
-	appName := C.CString("golib")
-	defer C.free(unsafe.Pointer(appName))
-
 	//
 	// SETUP
 	//
-	ab = C.AB_Banking_new(appName, nil, 0)
-	if err := C.AB_Banking_Init(ab); err != 0 {
-		log.Fatal("unable to initialize aqbanking: %d\n", err)
+	acc, err := NewAQBanking("golib")
+	if err != nil {
+		fmt.Printf("unable to init aqbanking: %v", err)
 	}
-	if err := C.AB_Banking_OnlineInit(ab); err != 0 {
-		log.Fatal("unable to initialize aqbanking online: %d\n", err)
-	}
-
-	var gui *C.GWEN_GUI
-	gui = C.GWEN_Gui_new()
-	C.GWEN_Gui_SetGui(gui)
 
 	// list version, debug stuff
 	var major, minor, patchlevel, build C.int
@@ -51,7 +64,7 @@ func main() {
 
 	// list known accounts
 	var account_list *C.AB_ACCOUNT_LIST2
-	account_list = C.AB_Banking_GetAccounts(ab)
+	account_list = C.AB_Banking_GetAccounts(acc.Ptr)
 	if account_list == nil {
 		fmt.Println("Unable to load accounts.")
 	}
@@ -77,16 +90,6 @@ func main() {
 	C.AB_Account_free(a)
 	C.AB_Account_List2_FreeAll(account_list)
 
-	//
-	// TEARDOWN
-	//
-	// fmt.Printf("%d\n", ab.onlineInitCount)
-	if err := C.AB_Banking_OnlineFini(ab); err != 0 {
-		log.Fatal("unable to free aqbanking online: %d\n", err)
-	}
-	C.AB_Banking_Fini(ab)
-
-	C.AB_Banking_free(ab)
-
+	acc.Free()
 	fmt.Printf("Hello, World!\n")
 }
