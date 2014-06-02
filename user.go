@@ -12,9 +12,11 @@ import "errors"
 import "C"
 
 type User struct {
+	Id         int
 	UserId     string
 	CustomerId string
 	Name       string
+	Country    string
 }
 
 func (ab *AQBanking) Users() ([]User, error) {
@@ -36,9 +38,12 @@ func (ab *AQBanking) Users() ([]User, error) {
 	for i := 0; abUser != nil; i++ {
 		user := User{}
 
+		user.Id = int(C.AB_User_GetUniqueId(abUser))
+
 		user.UserId = C.GoString(C.AB_User_GetUserId(abUser))
 		user.CustomerId = C.GoString(C.AB_User_GetCustomerId(abUser))
 		user.Name = C.GoString(C.AB_User_GetUserName(abUser))
+		user.Country = C.GoString(C.AB_User_GetCountry(abUser))
 
 		users[i] = user
 		abUser = C.AB_User_List2Iterator_Next(abIterator)

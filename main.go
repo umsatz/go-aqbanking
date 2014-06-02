@@ -47,11 +47,13 @@ func listUsers(ab *AQBanking) {
 	for _, user := range users {
 		fmt.Printf(`## %v
 Name: %v
+UserId: %v
 CustomerId: %v
 
 `,
-			user.UserId,
+			user.Id,
 			user.Name,
+			user.UserId,
 			user.CustomerId,
 		)
 	}
