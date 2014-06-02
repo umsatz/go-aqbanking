@@ -87,6 +87,11 @@ func (ab *AQBanking) Accounts() ([]Account, error) {
 		account.AccountNumber = C.GoString(C.AB_Account_GetAccountNumber(abAccount))
 		account.BankCode = C.GoString(C.AB_Account_GetBankCode(abAccount))
 		account.Name = C.GoString(C.AB_Account_GetAccountName(abAccount))
+		account.IBAN = C.GoString(C.AB_Account_GetIBAN(abAccount))
+		account.Owner = C.GoString(C.AB_Account_GetOwnerName(abAccount))
+		account.Currency = C.GoString(C.AB_Account_GetCurrency(abAccount))
+		account.Country = C.GoString(C.AB_Account_GetCountry(abAccount))
+
 		account.Bank = Bank{}
 		account.Bank.Name = C.GoString(C.AB_Account_GetBankName(abAccount))
 
@@ -105,6 +110,10 @@ type Account struct {
 	Name          string
 	AccountNumber string
 	BankCode      string
+	IBAN          string
+	Owner         string
+	Currency      string
+	Country       string
 	Bank          Bank
 }
 
@@ -126,11 +135,24 @@ func main() {
 		log.Fatal("unable to list accounts: %v", err)
 	}
 	for _, account := range accounts {
-		fmt.Printf("%v (kto: %v, blz: %v, %v)\n",
+		fmt.Printf(`Owner: %v
+Name: %v
+Currency: %v
+Country: %v
+AccountNumber: %v
+BankCode: %v
+Bank: %v
+IBAN: %v
+
+`,
+			account.Owner,
 			account.Name,
+			account.Currency,
+			account.Country,
 			account.AccountNumber,
 			account.BankCode,
 			account.Bank.Name,
+			account.IBAN,
 		)
 	}
 }
