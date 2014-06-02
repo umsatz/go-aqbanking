@@ -83,8 +83,13 @@ func (ab *AQBanking) Accounts() ([]Account, error) {
 
 	for i := 0; abAccount != nil; i++ {
 		account := Account{}
+
 		account.AccountNumber = C.GoString(C.AB_Account_GetAccountNumber(abAccount))
 		account.BankCode = C.GoString(C.AB_Account_GetBankCode(abAccount))
+		account.Name = C.GoString(C.AB_Account_GetAccountName(abAccount))
+		account.Bank = Bank{}
+		account.Bank.Name = C.GoString(C.AB_Account_GetBankName(abAccount))
+
 		accounts[i] = account
 		abAccount = C.AB_Account_List2Iterator_Next(abIterator)
 	}
@@ -97,8 +102,14 @@ func (ab *AQBanking) Accounts() ([]Account, error) {
 }
 
 type Account struct {
+	Name          string
 	AccountNumber string
 	BankCode      string
+	Bank          Bank
+}
+
+type Bank struct {
+	Name string
 }
 
 func main() {
@@ -115,6 +126,11 @@ func main() {
 		log.Fatal("unable to list accounts: %v", err)
 	}
 	for _, account := range accounts {
-		fmt.Printf("kto: %v, blz: %v\n", account.AccountNumber, account.BankCode)
+		fmt.Printf("%v (kto: %v, blz: %v, %v)\n",
+			account.Name,
+			account.AccountNumber,
+			account.BankCode,
+			account.Bank.Name,
+		)
 	}
 }
