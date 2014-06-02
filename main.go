@@ -65,45 +65,56 @@ func (ab *AQBanking) Free() error {
 	return nil
 }
 
+func (ab *AQBanking) Accounts() ([]Account, error) {
+	var abAccountList *C.AB_ACCOUNT_LIST2 = C.AB_Banking_GetAccounts(ab.Ptr)
+	if abAccountList == nil {
+		return nil, errors.New("Unable to load accounts.")
+	}
+
+	var accounts []Account = make([]Account, C.AB_Account_List2_GetSize(abAccountList))
+
+	var abIterator *C.AB_ACCOUNT_LIST2_ITERATOR = C.AB_Account_List2_First(abAccountList)
+	if abIterator == nil {
+		return nil, errors.New("Unable to get account iterator.")
+	}
+
+	var abAccount *C.AB_ACCOUNT
+	abAccount = C.AB_Account_List2Iterator_Data(abIterator)
+
+	for i := 0; abAccount != nil; i++ {
+		account := Account{}
+		account.AccountNumber = C.GoString(C.AB_Account_GetAccountNumber(abAccount))
+		account.BankCode = C.GoString(C.AB_Account_GetBankCode(abAccount))
+		accounts[i] = account
+		abAccount = C.AB_Account_List2Iterator_Next(abIterator)
+	}
+
+	C.AB_Account_List2Iterator_free(abIterator)
+	C.AB_Account_free(abAccount)
+	C.AB_Account_List2_FreeAll(abAccountList)
+
+	return accounts, nil
+}
+
+type Account struct {
+	AccountNumber string
+	BankCode      string
+}
+
 func main() {
-	//
-	// SETUP
-	//
 	acc, err := NewAQBanking("golib")
 	if err != nil {
-		fmt.Printf("unable to init aqbanking: %v", err)
+		log.Fatal("unable to init aqbanking: %v", err)
 	}
 	defer acc.Free()
 
 	fmt.Printf("using aqbanking %d.%d.%d\n", acc.Version.Major, acc.Version.Minor, acc.Version.Patchlevel)
 
-	// list known accounts
-	var account_list *C.AB_ACCOUNT_LIST2
-	account_list = C.AB_Banking_GetAccounts(acc.Ptr)
-	if account_list == nil {
-		fmt.Println("Unable to load accounts.")
+	accounts, err := acc.Accounts()
+	if err != nil {
+		log.Fatal("unable to list accounts: %v", err)
 	}
-
-	var iterator *C.AB_ACCOUNT_LIST2_ITERATOR
-	iterator = C.AB_Account_List2_First(account_list)
-	if iterator == nil {
-		log.Fatal("Unable to get account iterator.")
+	for _, account := range accounts {
+		fmt.Printf("kto: %v, blz: %v\n", account.AccountNumber, account.BankCode)
 	}
-
-	var a *C.AB_ACCOUNT
-	a = C.AB_Account_List2Iterator_Data(iterator)
-
-	for a != nil {
-		var account_number, bank_code string
-		account_number = C.GoString(C.AB_Account_GetAccountNumber(a))
-		bank_code = C.GoString(C.AB_Account_GetBankCode(a))
-		fmt.Printf("kto: %v, blz: %v\n", account_number, bank_code)
-		a = C.AB_Account_List2Iterator_Next(iterator)
-	}
-
-	C.AB_Account_List2Iterator_free(iterator)
-	C.AB_Account_free(a)
-	C.AB_Account_List2_FreeAll(account_list)
-
-	fmt.Printf("Hello, World!\n")
 }
