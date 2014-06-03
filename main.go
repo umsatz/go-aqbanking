@@ -26,7 +26,8 @@ func listAccounts(ab *AQBanking) {
 
 	fmt.Println("%%\nAccounts")
 	for _, account := range accountCollection.Accounts {
-		fmt.Printf(`## %v
+		fmt.Printf(`
+## %v
 Owner: %v
 Type: %d
 Currency: %v
@@ -36,7 +37,6 @@ BankCode: %v
 Bank: %v
 IBAN: %v
 BIC: %v
-
 `,
 			account.Name,
 			account.Owner,
@@ -61,11 +61,11 @@ func listUsers(ab *AQBanking) {
 
 	fmt.Println("%%\nUsers")
 	for _, user := range userCollection.Users {
-		fmt.Printf(`## %v
+		fmt.Printf(`
+## %v
 Name: %v
 UserId: %v
 CustomerId: %v
-
 `,
 			user.Id,
 			user.Name,
@@ -90,7 +90,8 @@ func listTransactions(ab *AQBanking) {
 	}
 
 	for _, transaction := range transactions {
-		fmt.Printf(`## %v
+		fmt.Printf(`
+## %v
 '%v'
 MandateReference: %v
 CustomerReference: %v
@@ -182,7 +183,7 @@ func main() {
 
 	registerPins(aq, gui)
 
-	// listAccounts(aq)
+	listAccounts(aq)
 	listUsers(aq)
 	listTransactions(aq)
 }
