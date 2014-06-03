@@ -31,6 +31,19 @@ func (ul *UserCollection) Free() {
 	C.AB_User_List2_free(ul.Ptr)
 }
 
+func NewUser(ptr *C.AB_USER) User {
+	user := User{}
+	user.Id = int(C.AB_User_GetUniqueId(ptr))
+
+	user.UserId = C.GoString(C.AB_User_GetUserId(ptr))
+	user.CustomerId = C.GoString(C.AB_User_GetCustomerId(ptr))
+	user.Name = C.GoString(C.AB_User_GetUserName(ptr))
+	user.Country = C.GoString(C.AB_User_GetCountry(ptr))
+
+	user.Ptr = ptr
+	return user
+}
+
 // implements AB_Banking_GetUsers
 func (ab *AQBanking) Users() (*UserCollection, error) {
 	var abUserList *C.AB_USER_LIST2 = C.AB_Banking_GetUsers(ab.Ptr)
@@ -50,18 +63,7 @@ func (ab *AQBanking) Users() (*UserCollection, error) {
 	abUser = C.AB_User_List2Iterator_Data(abIterator)
 
 	for i := 0; abUser != nil; i++ {
-		user := User{}
-
-		user.Id = int(C.AB_User_GetUniqueId(abUser))
-
-		user.UserId = C.GoString(C.AB_User_GetUserId(abUser))
-		user.CustomerId = C.GoString(C.AB_User_GetCustomerId(abUser))
-		user.Name = C.GoString(C.AB_User_GetUserName(abUser))
-		user.Country = C.GoString(C.AB_User_GetCountry(abUser))
-
-		user.Ptr = abUser
-
-		collection.Users[i] = user
+		collection.Users[i] = NewUser(abUser)
 		abUser = C.AB_User_List2Iterator_Next(abIterator)
 	}
 

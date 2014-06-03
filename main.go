@@ -1,8 +1,10 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
+	"os"
 )
 
 /*
@@ -12,16 +14,6 @@ import (
 #cgo darwin CFLAGS: -I/usr/local/include/aqbanking5
 #include <gwenhywfar/cgui.h>
 #include <aqbanking/banking.h>
-#include <aqbanking/abgui.h>
-int ASDPrint(GWEN_GUI *gui,
-			const char *docTitle,
-			const char *docType,
-			const char *descr,
-			const char *text,
-			uint32_t guiid){
-
-  return 0;
-}
 */
 import "C"
 
@@ -125,12 +117,35 @@ Total: %2.2f
 	}
 }
 
+type Pin struct {
+	Kto string `json:"kto"`
+	Blz string `json:"blz"`
+	Pin string `json:"pin"`
+}
+
+func loadPins() []Pin {
+	f, err := os.Open("pins.json")
+	if err != nil {
+		log.Fatal("%v", err)
+		return nil
+	}
+
+	var pins []Pin
+	err = json.NewDecoder(f).Decode(&pins)
+	if err != nil {
+		log.Fatal("%v", err)
+		return nil
+	}
+
+	return pins
+}
+
 func main() {
 	var gui *C.struct_GWEN_GUI = C.GWEN_Gui_CGui_new()
+	defer C.GWEN_Gui_free(gui)
 	// var gui *C.struct_GWEN_GUI = C.GWEN_Gui_new()
+	C.GWEN_Gui_SetFlags(gui, C.GWEN_GUI_FLAGS_ACCEPTVALIDCERTS|C.GWEN_GUI_FLAGS_NONINTERACTIVE)
 	C.GWEN_Gui_SetGui(gui)
-
-	// C.GWEN_Gui_SetFlags(gui, C.GWEN_GUI_FLAGS_NONINTERACTIVE)
 
 	aq, err := NewAQBanking("local")
 	if err != nil {
@@ -144,18 +159,26 @@ func main() {
 		aq.Version.Patchlevel,
 	)
 
+	accountCollection, _ := aq.Accounts()
+	pins := loadPins()
+	var dbPins *C.GWEN_DB_NODE = C.GWEN_DB_Group_new(C.CString("pins"))
+
+	for _, account := range accountCollection.Accounts {
+		for _, pin := range pins {
+			if pin.Blz == account.BankCode && pin.Kto == account.AccountNumber {
+				user := account.FirstUser()
+				str := fmt.Sprintf("PIN_%v_%v=%v\n", pin.Blz, user.CustomerId, pin.Pin)
+				pinLen := len(str)
+
+				C.GWEN_DB_ReadFromString(dbPins, C.CString(str), C.int(pinLen), C.GWEN_PATH_FLAGS_CREATE_GROUP|C.GWEN_DB_FLAGS_DEFAULT)
+				break
+			}
+		}
+	}
+
+	C.GWEN_Gui_CGui_SetPasswordDb(gui, dbPins, 1)
+
 	// listAccounts(aq)
 	listUsers(aq)
-
-	// userCollection, err := aq.Users()
-	// if err != nil {
-	// 	log.Fatal("unable to list users: %v", err)
-	// }
-	// defer userCollection.Free()
-
-	// user := userCollection.Users[0]
-	// var pw *C.char = C.CString("123456")
-	// C.GWEN_DB_SetCharValue(user.Ptr, C.GWEN_DB_FLAGS_OVERWRITE_VARS, C.CString("password"), pw)
-
 	listTransactions(aq)
 }

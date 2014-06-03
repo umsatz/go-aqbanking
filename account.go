@@ -53,6 +53,10 @@ func (al *AccountCollection) Free() {
 	C.AB_Account_List2_free(al.Ptr)
 }
 
+func (a *Account) FirstUser() User {
+	return NewUser(C.AB_Account_GetFirstUser(a.Ptr))
+}
+
 // implements AB_Banking_GetAccounts
 func (ab *AQBanking) Accounts() (*AccountCollection, error) {
 	var abAccountList *C.AB_ACCOUNT_LIST2 = C.AB_Banking_GetAccounts(ab.Ptr)
