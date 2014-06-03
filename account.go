@@ -67,7 +67,8 @@ func newAccount(a *C.AB_ACCOUNT) Account {
 func (ab *AQBanking) Accounts() (*AccountCollection, error) {
 	var abAccountList *C.AB_ACCOUNT_LIST2 = C.AB_Banking_GetAccounts(ab.Ptr)
 	if abAccountList == nil {
-		return nil, errors.New("Unable to load accounts.")
+		// no accounts available
+		return &AccountCollection{}, nil
 	}
 
 	var list *AccountCollection = &AccountCollection{}

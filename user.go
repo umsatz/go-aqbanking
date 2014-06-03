@@ -48,7 +48,8 @@ func newUser(ptr *C.AB_USER) User {
 func (ab *AQBanking) Users() (*UserCollection, error) {
 	var abUserList *C.AB_USER_LIST2 = C.AB_Banking_GetUsers(ab.Ptr)
 	if abUserList == nil {
-		return nil, errors.New("Unable to load users.")
+		// no users available
+		return &UserCollection{}, nil
 	}
 
 	collection := &UserCollection{}

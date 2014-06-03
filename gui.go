@@ -8,7 +8,10 @@ package main
 #include <gwenhywfar/cgui.h>
 */
 import "C"
-import "fmt"
+import (
+	"fmt"
+	"log"
+)
 
 type Gui C.struct_GWEN_GUI
 
@@ -26,7 +29,11 @@ func NewNonInteractiveGui() *Gui {
 }
 
 func (g *Gui) RegisterPins(aq *AQBanking, pins []Pin) {
-	accountCollection, _ := aq.Accounts()
+	accountCollection, err := aq.Accounts()
+	if err != nil {
+		log.Fatalf("unable to register pins: %v\n", err)
+		return
+	}
 	var dbPins *C.GWEN_DB_NODE = C.GWEN_DB_Group_new(C.CString("pins"))
 
 	for _, account := range accountCollection.Accounts {
