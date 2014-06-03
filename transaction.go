@@ -18,28 +18,36 @@ import (
 import "C"
 
 type Transaction struct {
+	// Type               string // AB_Transaction_Type
+	// SubType            string // AB_TRANSACTION_SUBTYPE
 	Purpose           string
-	Category          string
-	Type              string // AB_Transaction_Type
-	SubType           string // AB_TRANSACTION_SUBTYPE
 	Text              string
+	Status            string
 	Date              time.Time
 	ValutaDate        time.Time
 	MandateReference  string
 	CustomerReference string
 	Currency          string
 	Total             float32
-	LocalBankCode     string
-	RemoteBankCode    string
 	TransactionPeriod string
+
+	LocalBankCode      string
+	LocalAccountNumber string
+	LocalIBAN          string
+	LocalBIC           string
+
+	RemoteBankCode      string
+	RemoteAccountNumber string
+	RemoteIBAN          string
+	RemoteBIC           string
 }
 
 func newTransaction(t *C.AB_TRANSACTION, v *C.AB_VALUE) Transaction {
 	transaction := Transaction{}
 
 	transaction.Purpose = (*GwStringList)(C.AB_Transaction_GetPurpose(t)).toString()
-	transaction.Category = (*GwStringList)(C.AB_Transaction_GetCategory(t)).toString()
 	transaction.Text = C.GoString(C.AB_Transaction_GetTransactionText(t))
+	transaction.Status = C.GoString(C.AB_Transaction_Status_toString(C.AB_Transaction_GetStatus(t)))
 	transaction.MandateReference = C.GoString(C.AB_Transaction_GetMandateReference(t))
 	transaction.CustomerReference = C.GoString(C.AB_Transaction_GetMandateReference(t))
 	transaction.Date = (*GwTime)(C.AB_Transaction_GetDate(t)).toTime()
@@ -48,8 +56,24 @@ func newTransaction(t *C.AB_TRANSACTION, v *C.AB_VALUE) Transaction {
 	transaction.Currency = C.GoString(C.AB_Value_GetCurrency(v))
 	transaction.Total = float32(C.AB_Value_GetValueAsDouble(v))
 
-	transaction.Type = C.GoString(C.AB_Transaction_Type_toString(C.AB_Transaction_GetType(t)))
-	transaction.SubType = C.GoString(C.AB_Transaction_SubType_toString(C.AB_Transaction_GetSubType(t)))
+	transaction.LocalIBAN = C.GoString(C.AB_Transaction_GetLocalIban(t))
+	transaction.LocalBIC = C.GoString(C.AB_Transaction_GetLocalBic(t))
+	transaction.LocalBankCode = C.GoString(C.AB_Transaction_GetLocalBankCode(t))
+	transaction.LocalAccountNumber = C.GoString(C.AB_Transaction_GetLocalAccountNumber(t))
+
+	transaction.RemoteIBAN = C.GoString(C.AB_Transaction_GetRemoteIban(t))
+	transaction.RemoteBIC = C.GoString(C.AB_Transaction_GetRemoteBic(t))
+	transaction.RemoteBankCode = C.GoString(C.AB_Transaction_GetRemoteBankCode(t))
+	transaction.RemoteAccountNumber = C.GoString(C.AB_Transaction_GetRemoteAccountNumber(t))
+
+	// fmt.Printf("###### '%d'\n", int(C.AB_Transaction_GetStatus(t)))
+	// fmt.Printf("###### '%v'\n", C.GoString(C.AB_Transaction_GetLocalCountry(t)))
+	// fmt.Printf("###### '%v'\n", C.GoString(C.AB_Transaction_GetLocalSuffix(t)))
+	// fmt.Printf("###### '%v'\n", C.GoString(C.AB_Transaction_GetLocalCountry(t)))
+	// fmt.Printf("###### '%v'\n", C.GoString(C.AB_Transaction_GetLocalBranchId(t)))
+
+	// transaction.Type = C.GoString(C.AB_Transaction_Type_toString(C.AB_Transaction_GetType(t)))
+	// transaction.SubType = C.GoString(C.AB_Transaction_SubType_toString(C.AB_Transaction_GetSubType(t)))
 
 	transaction.TransactionPeriod = C.GoString(C.AB_Transaction_Period_toString(C.AB_Transaction_GetPeriod(t)))
 

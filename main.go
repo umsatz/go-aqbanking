@@ -81,32 +81,44 @@ func listTransactionsFor(ab *AQBanking, account *Account) {
 		log.Fatalf("unable to get transactions!: %v", err)
 	}
 
-	for _, transaction := range transactions {
+	for _, t := range transactions {
 		fmt.Printf(`
 ## %v
 '%v'
+Status: %v
 MandateReference: %v
 CustomerReference: %v
+LocalBankCode: %v
+LocalAccountNumber: %v
+LocalIBAN: %v
+LocalBIC: %v
+RemoteBankCode: %v
+RemoteAccountNumber: %v
+RemoteIBAN: %v
+RemoteBIC: %v
 Date: %v
 ValutaDate: %v
-Category: %v
 Period: %v
-Type: %v
-SubType: %v
 Currency: %v
 Total: %2.2f
-`, transaction.Purpose,
-			transaction.Text,
-			transaction.MandateReference,
-			transaction.CustomerReference,
-			transaction.Date,
-			transaction.ValutaDate,
-			transaction.Category,
-			transaction.TransactionPeriod,
-			transaction.Type,
-			transaction.SubType,
-			transaction.Currency,
-			transaction.Total)
+`, t.Purpose,
+			t.Text,
+			t.Status,
+			t.MandateReference,
+			t.CustomerReference,
+			t.LocalBankCode,
+			t.LocalAccountNumber,
+			t.LocalIBAN,
+			t.LocalBIC,
+			t.RemoteBankCode,
+			t.RemoteAccountNumber,
+			t.RemoteIBAN,
+			t.RemoteBIC,
+			t.Date,
+			t.ValutaDate,
+			t.TransactionPeriod,
+			t.Currency,
+			t.Total)
 	}
 }
 
@@ -117,6 +129,8 @@ func listTransactions(ab *AQBanking) {
 	}
 	defer accountList.Free()
 
+	listTransactionsFor(ab, &accountList.Accounts[len(accountList.Accounts)-1])
+	return
 	for _, account := range accountList.Accounts {
 		listTransactionsFor(ab, &account)
 	}
