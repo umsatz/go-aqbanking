@@ -7,9 +7,9 @@ import (
 )
 
 type Pin struct {
-	Kto string `json:"kto"`
-	Blz string `json:"blz"`
-	Pin string `json:"pin"`
+	Blz    string `json:"blz"`
+	UserId string `json:"uid"`
+	Pin    string `json:"pin"`
 }
 
 func LoadPins(filename string) []Pin {

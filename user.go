@@ -15,6 +15,7 @@ import (
 #include <stdlib.h>
 #include <aqbanking/banking.h>
 #include <aqbanking/banking_be.h>
+#include <aqhbci/provider.h>
 #include <aqhbci/user.h>
 #include <gwenhywfar/text.h>
 #include <gwenhywfar/url.h>
@@ -44,6 +45,8 @@ func (ul *UserCollection) Free() {
 	C.AB_User_List2_free(ul.Ptr)
 }
 
+// implements the simplified, pintan only workflow from
+// src/plugins/backends/aqhbci/tools/aqhbci-tool/adduser.c
 func (ab *AQBanking) AddPinUser(userId, bankCode, name, serverUrl string) (User, error) {
 	var aqUser *C.AB_USER
 
@@ -125,6 +128,18 @@ func (ab *AQBanking) AddPinUser(userId, bankCode, name, serverUrl string) (User,
 	C.AB_Banking_AddUser(ab.Ptr, aqUser)
 
 	return User{}, nil
+}
+
+func (u *User) FetchAccounts(aq *AQBanking) error {
+	var ctx *C.AB_IMEXPORTER_CONTEXT = C.AB_ImExporterContext_new()
+
+	var pro *C.AB_PROVIDER = C.AB_Banking_GetProvider(aq.Ptr, C.CString("aqhbci"))
+	if err := C.AH_Provider_GetAccounts(pro, u.Ptr, ctx, 1, 0, 1); err != 0 {
+		return errors.New(fmt.Sprintf("Error getting accounts (%d)", err))
+	}
+
+	C.AB_ImExporterContext_free(ctx)
+	return nil
 }
 
 func newUser(ptr *C.AB_USER) User {
