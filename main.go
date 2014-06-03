@@ -140,6 +140,27 @@ func loadPins() []Pin {
 	return pins
 }
 
+func registerPins(aq *AQBanking, gui *C.struct_GWEN_GUI) {
+	accountCollection, _ := aq.Accounts()
+	pins := loadPins()
+	var dbPins *C.GWEN_DB_NODE = C.GWEN_DB_Group_new(C.CString("pins"))
+
+	for _, account := range accountCollection.Accounts {
+		for _, pin := range pins {
+			if pin.Blz == account.BankCode && pin.Kto == account.AccountNumber {
+				user := account.FirstUser()
+				str := fmt.Sprintf("PIN_%v_%v=%v\n", pin.Blz, user.CustomerId, pin.Pin)
+				pinLen := len(str)
+
+				C.GWEN_DB_ReadFromString(dbPins, C.CString(str), C.int(pinLen), C.GWEN_PATH_FLAGS_CREATE_GROUP|C.GWEN_DB_FLAGS_DEFAULT)
+				break
+			}
+		}
+	}
+
+	C.GWEN_Gui_CGui_SetPasswordDb(gui, dbPins, 1)
+}
+
 func main() {
 	var gui *C.struct_GWEN_GUI = C.GWEN_Gui_CGui_new()
 	defer C.GWEN_Gui_free(gui)
@@ -159,24 +180,7 @@ func main() {
 		aq.Version.Patchlevel,
 	)
 
-	accountCollection, _ := aq.Accounts()
-	pins := loadPins()
-	var dbPins *C.GWEN_DB_NODE = C.GWEN_DB_Group_new(C.CString("pins"))
-
-	for _, account := range accountCollection.Accounts {
-		for _, pin := range pins {
-			if pin.Blz == account.BankCode && pin.Kto == account.AccountNumber {
-				user := account.FirstUser()
-				str := fmt.Sprintf("PIN_%v_%v=%v\n", pin.Blz, user.CustomerId, pin.Pin)
-				pinLen := len(str)
-
-				C.GWEN_DB_ReadFromString(dbPins, C.CString(str), C.int(pinLen), C.GWEN_PATH_FLAGS_CREATE_GROUP|C.GWEN_DB_FLAGS_DEFAULT)
-				break
-			}
-		}
-	}
-
-	C.GWEN_Gui_CGui_SetPasswordDb(gui, dbPins, 1)
+	registerPins(aq, gui)
 
 	// listAccounts(aq)
 	listUsers(aq)
