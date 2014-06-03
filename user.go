@@ -17,16 +17,29 @@ type User struct {
 	CustomerId string
 	Name       string
 	Country    string
+
+	Ptr *C.AB_USER
+}
+
+type UserCollection struct {
+	Users []User
+	Ptr   *C.AB_USER_LIST2
+}
+
+func (ul *UserCollection) Free() {
+	ul.Users = make([]User, 0)
+	C.AB_User_List2_free(ul.Ptr)
 }
 
 // implements AB_Banking_GetUsers
-func (ab *AQBanking) Users() ([]User, error) {
+func (ab *AQBanking) Users() (*UserCollection, error) {
 	var abUserList *C.AB_USER_LIST2 = C.AB_Banking_GetUsers(ab.Ptr)
 	if abUserList == nil {
 		return nil, errors.New("Unable to load users.")
 	}
 
-	var users []User = make([]User, C.AB_Account_List2_GetSize(abUserList))
+	collection := &UserCollection{}
+	collection.Users = make([]User, C.AB_Account_List2_GetSize(abUserList))
 
 	var abIterator *C.AB_USER_LIST2_ITERATOR = C.AB_User_List2_First(abUserList)
 	if abIterator == nil {
@@ -46,13 +59,14 @@ func (ab *AQBanking) Users() ([]User, error) {
 		user.Name = C.GoString(C.AB_User_GetUserName(abUser))
 		user.Country = C.GoString(C.AB_User_GetCountry(abUser))
 
-		users[i] = user
+		user.Ptr = abUser
+
+		collection.Users[i] = user
 		abUser = C.AB_User_List2Iterator_Next(abIterator)
 	}
 
 	C.AB_User_List2Iterator_free(abIterator)
 	C.AB_User_free(abUser)
-	C.AB_User_List2_freeAll(abUserList)
 
-	return users, nil
+	return collection, nil
 }

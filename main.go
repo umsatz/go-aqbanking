@@ -61,13 +61,14 @@ BIC: %v
 }
 
 func listUsers(ab *AQBanking) {
-	users, err := ab.Users()
+	userCollection, err := ab.Users()
 	if err != nil {
 		log.Fatal("unable to list users: %v", err)
 	}
+	defer userCollection.Free()
 
 	fmt.Println("%%\nUsers")
-	for _, user := range users {
+	for _, user := range userCollection.Users {
 		fmt.Printf(`## %v
 Name: %v
 UserId: %v
@@ -126,21 +127,35 @@ Total: %2.2f
 
 func main() {
 	var gui *C.struct_GWEN_GUI = C.GWEN_Gui_CGui_new()
+	// var gui *C.struct_GWEN_GUI = C.GWEN_Gui_new()
 	C.GWEN_Gui_SetGui(gui)
 
-	ab, err := NewAQBanking("local")
+	// C.GWEN_Gui_SetFlags(gui, C.GWEN_GUI_FLAGS_NONINTERACTIVE)
+
+	aq, err := NewAQBanking("local")
 	if err != nil {
 		log.Fatal("unable to init aqbanking: %v", err)
 	}
-	defer ab.Free()
+	defer aq.Free()
 
 	fmt.Printf("using aqbanking %d.%d.%d\n",
-		ab.Version.Major,
-		ab.Version.Minor,
-		ab.Version.Patchlevel,
+		aq.Version.Major,
+		aq.Version.Minor,
+		aq.Version.Patchlevel,
 	)
 
-	listAccounts(ab)
-	// listUsers(ab)
-	listTransactions(ab)
+	// listAccounts(aq)
+	listUsers(aq)
+
+	// userCollection, err := aq.Users()
+	// if err != nil {
+	// 	log.Fatal("unable to list users: %v", err)
+	// }
+	// defer userCollection.Free()
+
+	// user := userCollection.Users[0]
+	// var pw *C.char = C.CString("123456")
+	// C.GWEN_DB_SetCharValue(user.Ptr, C.GWEN_DB_FLAGS_OVERWRITE_VARS, C.CString("password"), pw)
+
+	listTransactions(aq)
 }
