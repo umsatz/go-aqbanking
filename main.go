@@ -75,16 +75,8 @@ CustomerId: %v
 	}
 }
 
-func listTransactions(ab *AQBanking) {
-	accountList, err := ab.Accounts()
-	if err != nil {
-		log.Fatal("unable to list accounts: %v", err)
-	}
-	defer accountList.Free()
-	account := accountList.Accounts[len(accountList.Accounts)-1]
-	// account := accountList.Accounts[0]
-
-	transactions, err := ab.Transactions(account)
+func listTransactionsFor(ab *AQBanking, account *Account) {
+	transactions, err := ab.Transactions(*account)
 	if err != nil {
 		log.Fatalf("unable to get transactions!: %v", err)
 	}
@@ -115,6 +107,18 @@ Total: %2.2f
 			transaction.SubType,
 			transaction.Currency,
 			transaction.Total)
+	}
+}
+
+func listTransactions(ab *AQBanking) {
+	accountList, err := ab.Accounts()
+	if err != nil {
+		log.Fatal("unable to list accounts: %v", err)
+	}
+	defer accountList.Free()
+
+	for _, account := range accountList.Accounts {
+		listTransactionsFor(ab, &account)
 	}
 }
 
