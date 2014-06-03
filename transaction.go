@@ -17,11 +17,17 @@ import (
 import "C"
 
 type Transaction struct {
-	Purpose        string
-	Currency       string
-	Total          float32
-	LocalBankCode  string
-	RemoteBankCode string
+	Purpose           string
+	Category          string
+	Type              string // AB_Transaction_Type
+	SubType           string // AB_TRANSACTION_SUBTYPE
+	Text              string
+	MandateReference  string
+	Currency          string
+	Total             float32
+	LocalBankCode     string
+	RemoteBankCode    string
+	TransactionPeriod string
 }
 
 // implements AB_JobGetTransactions_new
@@ -40,7 +46,7 @@ func (ab *AQBanking) Transactions(acc Account) ([]Transaction, error) {
 	// TODO set arguments?
 	// AB_JobGetTransactions_SetFromTime
 	// AB_JobGetTransactions_SetToTime
-	// TODO add job to queue
+
 	var abJobList *C.AB_JOB_LIST2 = C.AB_Job_List2_new()
 	C.AB_Job_List2_PushBack(abJobList, abJob)
 	var abContext *C.AB_IMEXPORTER_CONTEXT = C.AB_ImExporterContext_new()
@@ -60,9 +66,19 @@ func (ab *AQBanking) Transactions(acc Account) ([]Transaction, error) {
 			abValue = C.AB_Transaction_GetValue(abTransaction)
 			if abValue != nil {
 				var transaction Transaction = Transaction{}
+
 				transaction.Purpose = (*GwStringList)(C.AB_Transaction_GetPurpose(abTransaction)).toString()
+				transaction.Category = (*GwStringList)(C.AB_Transaction_GetCategory(abTransaction)).toString()
+				transaction.Text = C.GoString(C.AB_Transaction_GetTransactionText(abTransaction))
+				transaction.MandateReference = C.GoString(C.AB_Transaction_GetMandateReference(abTransaction))
+
 				transaction.Currency = C.GoString(C.AB_Value_GetCurrency(abValue))
 				transaction.Total = float32(C.AB_Value_GetValueAsDouble(abValue))
+
+				transaction.Type = C.GoString(C.AB_Transaction_Type_toString(C.AB_Transaction_GetType(abTransaction)))
+				transaction.SubType = C.GoString(C.AB_Transaction_SubType_toString(C.AB_Transaction_GetSubType(abTransaction)))
+
+				transaction.TransactionPeriod = C.GoString(C.AB_Transaction_Period_toString(C.AB_Transaction_GetPeriod(abTransaction)))
 
 				transactions = append(transactions, transaction)
 			}

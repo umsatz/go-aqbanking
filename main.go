@@ -26,14 +26,14 @@ int ASDPrint(GWEN_GUI *gui,
 import "C"
 
 func listAccounts(ab *AQBanking) {
-	list, err := ab.Accounts()
+	accountList, err := ab.Accounts()
 	if err != nil {
 		log.Fatal("unable to list accounts: %v", err)
 	}
-	defer list.Free()
+	defer accountList.Free()
 
 	fmt.Println("%%\nAccounts")
-	for _, account := range list.Accounts {
+	for _, account := range accountList.Accounts {
 		fmt.Printf(`## %v
 Owner: %v
 Type: %d
@@ -98,9 +98,21 @@ func listTransactions(ab *AQBanking) {
 
 	for _, transaction := range transactions {
 		fmt.Printf(`## %v
+'%v'
+MandateReference: %v
+Category: %v
+Period: %v
+Type: %v
+SubType: %v
 Currency: %v
 Total: %2.2f
 `, transaction.Purpose,
+			transaction.Text,
+			transaction.MandateReference,
+			transaction.Category,
+			transaction.TransactionPeriod,
+			transaction.Type,
+			transaction.SubType,
 			transaction.Currency,
 			transaction.Total)
 	}
@@ -141,5 +153,5 @@ func main() {
 
 	listAccounts(ab)
 	// listUsers(ab)
-	// listTransactions(ab)
+	listTransactions(ab)
 }
