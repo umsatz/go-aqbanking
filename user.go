@@ -5,9 +5,9 @@ import "errors"
 /*
 #cgo LDFLAGS: -laqbanking
 #cgo LDFLAGS: -lgwenhywfar
-#cgo CFLAGS: -I/usr/local/include/gwenhywfar4
-#cgo CFLAGS: -I/usr/local/include/aqbanking5
-#include <aqbanking5/aqbanking/banking.h>
+#cgo darwin CFLAGS: -I/usr/local/include/gwenhywfar4
+#cgo darwin CFLAGS: -I/usr/local/include/aqbanking5
+#include <aqbanking/banking.h>
 */
 import "C"
 
@@ -19,6 +19,7 @@ type User struct {
 	Country    string
 }
 
+// implements AB_Banking_GetUsers
 func (ab *AQBanking) Users() ([]User, error) {
 	var abUserList *C.AB_USER_LIST2 = C.AB_Banking_GetUsers(ab.Ptr)
 	if abUserList == nil {

@@ -5,14 +5,35 @@ import (
 	"log"
 )
 
+/*
+#cgo LDFLAGS: -laqbanking
+#cgo LDFLAGS: -lgwenhywfar
+#cgo darwin CFLAGS: -I/usr/local/include/gwenhywfar4
+#cgo darwin CFLAGS: -I/usr/local/include/aqbanking5
+#include <gwenhywfar/cgui.h>
+#include <aqbanking/banking.h>
+#include <aqbanking/abgui.h>
+int ASDPrint(GWEN_GUI *gui,
+			const char *docTitle,
+			const char *docType,
+			const char *descr,
+			const char *text,
+			uint32_t guiid){
+
+  return 0;
+}
+*/
+import "C"
+
 func listAccounts(ab *AQBanking) {
-	accounts, err := ab.Accounts()
+	list, err := ab.Accounts()
 	if err != nil {
 		log.Fatal("unable to list accounts: %v", err)
 	}
+	defer list.Free()
 
 	fmt.Println("%%\nAccounts")
-	for _, account := range accounts {
+	for _, account := range list.Accounts {
 		fmt.Printf(`## %v
 Owner: %v
 Currency: %v
@@ -60,6 +81,24 @@ CustomerId: %v
 }
 
 func main() {
+	var gui *C.struct_GWEN_GUI = C.GWEN_Gui_CGui_new()
+	C.GWEN_Gui_SetGui(gui)
+	// C.GWEN_Gui_AddFlags(gui, C.GWEN_GUI_FLAGS_NONINTERACTIVE)
+
+	// fmt.Println("%d", gui.flags)
+
+	// var fnc *C.GWEN_GUI_PRINT_FN
+	// fmt.Println("%#v", C.GWEN_Gui_SetPrintFn)
+	// C.GWEN_Gui_SetPrintFn(gui, &C.ASDPrint)
+
+	// GWEN_Gui_SetCheckCertFn
+	// GWEN_Gui_SetReadDialogPrefsFn
+	// GWEN_Gui_SetWriteDialogPrefsFn
+	// GWEN_Gui_SetRunDialogFn
+	// GWEN_Gui_SetGetPasswordFn
+	// GWEN_Gui_SetSetPasswordStatusFn
+	// GWEN_Gui_SetPrintFn
+
 	ab, err := NewAQBanking("local")
 	if err != nil {
 		log.Fatal("unable to init aqbanking: %v", err)
@@ -72,6 +111,23 @@ func main() {
 		ab.Version.Patchlevel,
 	)
 
-	listAccounts(ab)
-	listUsers(ab)
+	accountList, err := ab.Accounts()
+	if err != nil {
+		log.Fatal("unable to list accounts: %v", err)
+	}
+	defer accountList.Free()
+	account := accountList.Accounts[len(accountList.Accounts)-1]
+
+	// listAccounts(ab)
+	// listUsers(ab)
+	transactions, err := ab.Transactions(account)
+	if err != nil {
+		log.Fatalf("unable to get transactions!: %v", err)
+	}
+
+	for _, transaction := range transactions {
+		fmt.Printf(`## %v
+
+`, transaction.Purpose)
+	}
 }

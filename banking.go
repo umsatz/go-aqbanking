@@ -8,9 +8,9 @@ import (
 /*
 #cgo LDFLAGS: -laqbanking
 #cgo LDFLAGS: -lgwenhywfar
-#cgo CFLAGS: -I/usr/local/include/gwenhywfar4
-#cgo CFLAGS: -I/usr/local/include/aqbanking5
-#include <aqbanking5/aqbanking/banking.h>
+#cgo darwin CFLAGS: -I/usr/local/include/gwenhywfar4
+#cgo darwin CFLAGS: -I/usr/local/include/aqbanking5
+#include <aqbanking/banking.h>
 */
 import "C"
 
@@ -25,7 +25,6 @@ type AQBanking struct {
 	Version AQBankingVersion
 
 	Ptr *C.AB_BANKING
-	gui *C.GWEN_GUI
 }
 
 func NewAQBanking(name string) (*AQBanking, error) {
@@ -39,9 +38,6 @@ func NewAQBanking(name string) (*AQBanking, error) {
 	if err := C.AB_Banking_OnlineInit(inst.Ptr); err != 0 {
 		return nil, errors.New(fmt.Sprintf("unable to initialized aqbanking: %d", err))
 	}
-
-	inst.gui = C.GWEN_Gui_new()
-	C.GWEN_Gui_SetGui(inst.gui)
 
 	inst.loadVersion()
 
