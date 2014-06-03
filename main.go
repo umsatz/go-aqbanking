@@ -26,14 +26,14 @@ int ASDPrint(GWEN_GUI *gui,
 import "C"
 
 func listAccounts(ab *AQBanking) {
-	accountList, err := ab.Accounts()
+	accountCollection, err := ab.Accounts()
 	if err != nil {
 		log.Fatal("unable to list accounts: %v", err)
 	}
-	defer accountList.Free()
+	defer accountCollection.Free()
 
 	fmt.Println("%%\nAccounts")
-	for _, account := range accountList.Accounts {
+	for _, account := range accountCollection.Accounts {
 		fmt.Printf(`## %v
 Owner: %v
 Type: %d

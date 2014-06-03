@@ -43,24 +43,24 @@ type Bank struct {
 	Name string
 }
 
-type AccountList struct {
+type AccountCollection struct {
 	Accounts []Account
 	Ptr      *C.AB_ACCOUNT_LIST2
 }
 
-func (al *AccountList) Free() {
+func (al *AccountCollection) Free() {
 	al.Accounts = make([]Account, 0)
 	C.AB_Account_List2_free(al.Ptr)
 }
 
 // implements AB_Banking_GetAccounts
-func (ab *AQBanking) Accounts() (*AccountList, error) {
+func (ab *AQBanking) Accounts() (*AccountCollection, error) {
 	var abAccountList *C.AB_ACCOUNT_LIST2 = C.AB_Banking_GetAccounts(ab.Ptr)
 	if abAccountList == nil {
 		return nil, errors.New("Unable to load accounts.")
 	}
 
-	var list *AccountList = &AccountList{}
+	var list *AccountCollection = &AccountCollection{}
 	list.Accounts = make([]Account, C.AB_Account_List2_GetSize(abAccountList))
 	list.Ptr = abAccountList
 
