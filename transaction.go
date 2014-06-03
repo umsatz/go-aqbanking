@@ -18,8 +18,6 @@ import (
 import "C"
 
 type Transaction struct {
-	// Type               string // AB_Transaction_Type
-	// SubType            string // AB_TRANSACTION_SUBTYPE
 	Purpose           string
 	Text              string
 	Status            string
@@ -27,57 +25,64 @@ type Transaction struct {
 	ValutaDate        time.Time
 	MandateReference  string
 	CustomerReference string
-	Currency          string
 	Total             float32
-	TransactionPeriod string
+	TotalCurrency     string
+	Fee               float32
+	FeeCurrency       string
 
 	LocalBankCode      string
 	LocalAccountNumber string
 	LocalIBAN          string
 	LocalBIC           string
+	LocalName          string
 
 	RemoteBankCode      string
 	RemoteAccountNumber string
 	RemoteIBAN          string
 	RemoteBIC           string
+	RemoteName          string
 }
 
-func newTransaction(t *C.AB_TRANSACTION, v *C.AB_VALUE) Transaction {
+func newTransaction(t *C.AB_TRANSACTION) (Transaction, bool) {
+	var v *C.AB_VALUE
+	v = C.AB_Transaction_GetValue(t)
+
+	if v == nil {
+		return Transaction{}, false
+	}
+
 	transaction := Transaction{}
 
 	transaction.Purpose = (*GwStringList)(C.AB_Transaction_GetPurpose(t)).toString()
 	transaction.Text = C.GoString(C.AB_Transaction_GetTransactionText(t))
 	transaction.Status = C.GoString(C.AB_Transaction_Status_toString(C.AB_Transaction_GetStatus(t)))
 	transaction.MandateReference = C.GoString(C.AB_Transaction_GetMandateReference(t))
-	transaction.CustomerReference = C.GoString(C.AB_Transaction_GetMandateReference(t))
+	transaction.CustomerReference = C.GoString(C.AB_Transaction_GetCustomerReference(t))
 	transaction.Date = (*GwTime)(C.AB_Transaction_GetDate(t)).toTime()
 	transaction.ValutaDate = (*GwTime)(C.AB_Transaction_GetValutaDate(t)).toTime()
 
-	transaction.Currency = C.GoString(C.AB_Value_GetCurrency(v))
 	transaction.Total = float32(C.AB_Value_GetValueAsDouble(v))
+	transaction.TotalCurrency = C.GoString(C.AB_Value_GetCurrency(v))
+
+	var f *C.AB_VALUE = C.AB_Transaction_GetFees(t)
+	if f != nil {
+		transaction.Fee = float32(C.AB_Value_GetValueAsDouble(f))
+		transaction.FeeCurrency = C.GoString(C.AB_Value_GetCurrency(f))
+	}
 
 	transaction.LocalIBAN = C.GoString(C.AB_Transaction_GetLocalIban(t))
 	transaction.LocalBIC = C.GoString(C.AB_Transaction_GetLocalBic(t))
 	transaction.LocalBankCode = C.GoString(C.AB_Transaction_GetLocalBankCode(t))
 	transaction.LocalAccountNumber = C.GoString(C.AB_Transaction_GetLocalAccountNumber(t))
+	transaction.LocalName = C.GoString(C.AB_Transaction_GetLocalName(t))
 
 	transaction.RemoteIBAN = C.GoString(C.AB_Transaction_GetRemoteIban(t))
 	transaction.RemoteBIC = C.GoString(C.AB_Transaction_GetRemoteBic(t))
 	transaction.RemoteBankCode = C.GoString(C.AB_Transaction_GetRemoteBankCode(t))
 	transaction.RemoteAccountNumber = C.GoString(C.AB_Transaction_GetRemoteAccountNumber(t))
+	transaction.RemoteName = (*GwStringList)(C.AB_Transaction_GetRemoteName(t)).toString()
 
-	// fmt.Printf("###### '%d'\n", int(C.AB_Transaction_GetStatus(t)))
-	// fmt.Printf("###### '%v'\n", C.GoString(C.AB_Transaction_GetLocalCountry(t)))
-	// fmt.Printf("###### '%v'\n", C.GoString(C.AB_Transaction_GetLocalSuffix(t)))
-	// fmt.Printf("###### '%v'\n", C.GoString(C.AB_Transaction_GetLocalCountry(t)))
-	// fmt.Printf("###### '%v'\n", C.GoString(C.AB_Transaction_GetLocalBranchId(t)))
-
-	// transaction.Type = C.GoString(C.AB_Transaction_Type_toString(C.AB_Transaction_GetType(t)))
-	// transaction.SubType = C.GoString(C.AB_Transaction_SubType_toString(C.AB_Transaction_GetSubType(t)))
-
-	transaction.TransactionPeriod = C.GoString(C.AB_Transaction_Period_toString(C.AB_Transaction_GetPeriod(t)))
-
-	return transaction
+	return transaction, true
 }
 
 // implements AB_JobGetTransactions_new
@@ -112,11 +117,10 @@ func (ab *AQBanking) Transactions(acc Account) ([]Transaction, error) {
 		var abTransaction *C.AB_TRANSACTION = C.AB_ImExporterAccountInfo_GetFirstTransaction(abInfo)
 
 		for abTransaction != nil {
-			var abValue *C.AB_VALUE
-			abValue = C.AB_Transaction_GetValue(abTransaction)
+			transaction, ok := newTransaction(abTransaction)
 
-			if abValue != nil {
-				transactions = append(transactions, newTransaction(abTransaction, abValue))
+			if ok {
+				transactions = append(transactions, transaction)
 			}
 
 			abTransaction = C.AB_ImExporterAccountInfo_GetNextTransaction(abInfo)

@@ -92,15 +92,16 @@ LocalBankCode: %v
 LocalAccountNumber: %v
 LocalIBAN: %v
 LocalBIC: %v
+LocalName: %v
 RemoteBankCode: %v
 RemoteAccountNumber: %v
 RemoteIBAN: %v
 RemoteBIC: %v
+RemoteName: %v
 Date: %v
 ValutaDate: %v
-Period: %v
-Currency: %v
-Total: %2.2f
+Total: %2.2f %v
+Fee: %2.2f %v
 `, t.Purpose,
 			t.Text,
 			t.Status,
@@ -110,15 +111,17 @@ Total: %2.2f
 			t.LocalAccountNumber,
 			t.LocalIBAN,
 			t.LocalBIC,
+			t.LocalName,
 			t.RemoteBankCode,
 			t.RemoteAccountNumber,
 			t.RemoteIBAN,
 			t.RemoteBIC,
+			t.RemoteName,
 			t.Date,
 			t.ValutaDate,
-			t.TransactionPeriod,
-			t.Currency,
-			t.Total)
+			t.Total, t.TotalCurrency,
+			t.Fee, t.FeeCurrency,
+		)
 	}
 }
 
