@@ -101,6 +101,8 @@ func listTransactions(ab *AQBanking) {
 '%v'
 MandateReference: %v
 CustomerReference: %v
+Date: %v
+ValutaDate: %v
 Category: %v
 Period: %v
 Type: %v
@@ -111,6 +113,8 @@ Total: %2.2f
 			transaction.Text,
 			transaction.MandateReference,
 			transaction.CustomerReference,
+			transaction.Date,
+			transaction.ValutaDate,
 			transaction.Category,
 			transaction.TransactionPeriod,
 			transaction.Type,
@@ -138,5 +142,5 @@ func main() {
 
 	listAccounts(ab)
 	// listUsers(ab)
-	// listTransactions(ab)
+	listTransactions(ab)
 }

@@ -3,6 +3,7 @@ package main
 import (
 	"errors"
 	"fmt"
+	"time"
 )
 
 /*
@@ -22,6 +23,8 @@ type Transaction struct {
 	Type              string // AB_Transaction_Type
 	SubType           string // AB_TRANSACTION_SUBTYPE
 	Text              string
+	Date              time.Time
+	ValutaDate        time.Time
 	MandateReference  string
 	CustomerReference string
 	Currency          string
@@ -73,6 +76,8 @@ func (ab *AQBanking) Transactions(acc Account) ([]Transaction, error) {
 				transaction.Text = C.GoString(C.AB_Transaction_GetTransactionText(abTransaction))
 				transaction.MandateReference = C.GoString(C.AB_Transaction_GetMandateReference(abTransaction))
 				transaction.CustomerReference = C.GoString(C.AB_Transaction_GetMandateReference(abTransaction))
+				transaction.Date = (*GwTime)(C.AB_Transaction_GetDate(abTransaction)).toTime()
+				transaction.ValutaDate = (*GwTime)(C.AB_Transaction_GetValutaDate(abTransaction)).toTime()
 
 				transaction.Currency = C.GoString(C.AB_Value_GetCurrency(abValue))
 				transaction.Total = float32(C.AB_Value_GetValueAsDouble(abValue))

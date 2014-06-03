@@ -4,8 +4,10 @@ package main
 #cgo LDFLAGS: -lgwenhywfar
 #cgo darwin CFLAGS: -I/usr/local/include/gwenhywfar4
 #include <gwenhywfar/stringlist.h>
+#include <gwenhywfar/gwentime.h>
 */
 import "C"
+import "time"
 
 type GwStringList C.GWEN_STRINGLIST
 
@@ -17,4 +19,11 @@ func (list *GwStringList) toString() string {
 		str += part
 	}
 	return str
+}
+
+type GwTime C.GWEN_TIME
+
+func (gt *GwTime) toTime() time.Time {
+	var seconds int64 = int64(C.GWEN_Time_Seconds((*C.GWEN_TIME)(gt)))
+	return time.Unix(seconds, 0)
 }
