@@ -54,7 +54,7 @@ func (al *AccountCollection) Free() {
 }
 
 func (a *Account) FirstUser() User {
-	return NewUser(C.AB_Account_GetFirstUser(a.Ptr))
+	return newUser(C.AB_Account_GetFirstUser(a.Ptr))
 }
 
 // implements AB_Banking_GetAccounts

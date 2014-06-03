@@ -31,7 +31,7 @@ func (ul *UserCollection) Free() {
 	C.AB_User_List2_free(ul.Ptr)
 }
 
-func NewUser(ptr *C.AB_USER) User {
+func newUser(ptr *C.AB_USER) User {
 	user := User{}
 	user.Id = int(C.AB_User_GetUniqueId(ptr))
 
@@ -63,7 +63,7 @@ func (ab *AQBanking) Users() (*UserCollection, error) {
 	abUser = C.AB_User_List2Iterator_Data(abIterator)
 
 	for i := 0; abUser != nil; i++ {
-		collection.Users[i] = NewUser(abUser)
+		collection.Users[i] = newUser(abUser)
 		abUser = C.AB_User_List2Iterator_Next(abIterator)
 	}
 

@@ -34,6 +34,28 @@ type Transaction struct {
 	TransactionPeriod string
 }
 
+func newTransaction(t *C.AB_TRANSACTION, v *C.AB_VALUE) Transaction {
+	transaction := Transaction{}
+
+	transaction.Purpose = (*GwStringList)(C.AB_Transaction_GetPurpose(t)).toString()
+	transaction.Category = (*GwStringList)(C.AB_Transaction_GetCategory(t)).toString()
+	transaction.Text = C.GoString(C.AB_Transaction_GetTransactionText(t))
+	transaction.MandateReference = C.GoString(C.AB_Transaction_GetMandateReference(t))
+	transaction.CustomerReference = C.GoString(C.AB_Transaction_GetMandateReference(t))
+	transaction.Date = (*GwTime)(C.AB_Transaction_GetDate(t)).toTime()
+	transaction.ValutaDate = (*GwTime)(C.AB_Transaction_GetValutaDate(t)).toTime()
+
+	transaction.Currency = C.GoString(C.AB_Value_GetCurrency(v))
+	transaction.Total = float32(C.AB_Value_GetValueAsDouble(v))
+
+	transaction.Type = C.GoString(C.AB_Transaction_Type_toString(C.AB_Transaction_GetType(t)))
+	transaction.SubType = C.GoString(C.AB_Transaction_SubType_toString(C.AB_Transaction_GetSubType(t)))
+
+	transaction.TransactionPeriod = C.GoString(C.AB_Transaction_Period_toString(C.AB_Transaction_GetPeriod(t)))
+
+	return transaction
+}
+
 // implements AB_JobGetTransactions_new
 func (ab *AQBanking) Transactions(acc Account) ([]Transaction, error) {
 	fmt.Println("before get transactions")
@@ -68,26 +90,9 @@ func (ab *AQBanking) Transactions(acc Account) ([]Transaction, error) {
 		for abTransaction != nil {
 			var abValue *C.AB_VALUE
 			abValue = C.AB_Transaction_GetValue(abTransaction)
+
 			if abValue != nil {
-				var transaction Transaction = Transaction{}
-
-				transaction.Purpose = (*GwStringList)(C.AB_Transaction_GetPurpose(abTransaction)).toString()
-				transaction.Category = (*GwStringList)(C.AB_Transaction_GetCategory(abTransaction)).toString()
-				transaction.Text = C.GoString(C.AB_Transaction_GetTransactionText(abTransaction))
-				transaction.MandateReference = C.GoString(C.AB_Transaction_GetMandateReference(abTransaction))
-				transaction.CustomerReference = C.GoString(C.AB_Transaction_GetMandateReference(abTransaction))
-				transaction.Date = (*GwTime)(C.AB_Transaction_GetDate(abTransaction)).toTime()
-				transaction.ValutaDate = (*GwTime)(C.AB_Transaction_GetValutaDate(abTransaction)).toTime()
-
-				transaction.Currency = C.GoString(C.AB_Value_GetCurrency(abValue))
-				transaction.Total = float32(C.AB_Value_GetValueAsDouble(abValue))
-
-				transaction.Type = C.GoString(C.AB_Transaction_Type_toString(C.AB_Transaction_GetType(abTransaction)))
-				transaction.SubType = C.GoString(C.AB_Transaction_SubType_toString(C.AB_Transaction_GetSubType(abTransaction)))
-
-				transaction.TransactionPeriod = C.GoString(C.AB_Transaction_Period_toString(C.AB_Transaction_GetPeriod(abTransaction)))
-
-				transactions = append(transactions, transaction)
+				transactions = append(transactions, newTransaction(abTransaction, abValue))
 			}
 
 			abTransaction = C.AB_ImExporterAccountInfo_GetNextTransaction(abInfo)
