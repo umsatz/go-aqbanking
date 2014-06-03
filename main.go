@@ -132,8 +132,6 @@ func listTransactions(ab *AQBanking) {
 	}
 	defer accountList.Free()
 
-	listTransactionsFor(ab, &accountList.Accounts[len(accountList.Accounts)-1])
-	return
 	for _, account := range accountList.Accounts {
 		listTransactionsFor(ab, &account)
 	}
