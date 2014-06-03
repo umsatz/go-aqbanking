@@ -1,10 +1,8 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
 	"log"
-	"os"
 )
 
 /*
@@ -135,56 +133,9 @@ func listTransactions(ab *AQBanking) {
 	}
 }
 
-type Pin struct {
-	Kto string `json:"kto"`
-	Blz string `json:"blz"`
-	Pin string `json:"pin"`
-}
-
-func loadPins() []Pin {
-	f, err := os.Open("pins.json")
-	if err != nil {
-		log.Fatal("%v", err)
-		return nil
-	}
-
-	var pins []Pin
-	err = json.NewDecoder(f).Decode(&pins)
-	if err != nil {
-		log.Fatal("%v", err)
-		return nil
-	}
-
-	return pins
-}
-
-func registerPins(aq *AQBanking, gui *C.struct_GWEN_GUI) {
-	accountCollection, _ := aq.Accounts()
-	pins := loadPins()
-	var dbPins *C.GWEN_DB_NODE = C.GWEN_DB_Group_new(C.CString("pins"))
-
-	for _, account := range accountCollection.Accounts {
-		for _, pin := range pins {
-			if pin.Blz == account.BankCode && pin.Kto == account.AccountNumber {
-				user := account.FirstUser()
-				str := fmt.Sprintf("PIN_%v_%v=%v\n", pin.Blz, user.CustomerId, pin.Pin)
-				pinLen := len(str)
-
-				C.GWEN_DB_ReadFromString(dbPins, C.CString(str), C.int(pinLen), C.GWEN_PATH_FLAGS_CREATE_GROUP|C.GWEN_DB_FLAGS_DEFAULT)
-				break
-			}
-		}
-	}
-
-	C.GWEN_Gui_CGui_SetPasswordDb(gui, dbPins, 1)
-}
-
 func main() {
-	var gui *C.struct_GWEN_GUI = C.GWEN_Gui_CGui_new()
-	defer C.GWEN_Gui_free(gui)
-	// var gui *C.struct_GWEN_GUI = C.GWEN_Gui_new()
-	C.GWEN_Gui_SetFlags(gui, C.GWEN_GUI_FLAGS_ACCEPTVALIDCERTS|C.GWEN_GUI_FLAGS_NONINTERACTIVE)
-	C.GWEN_Gui_SetGui(gui)
+	gui := NewNonInteractiveGui()
+	defer gui.Free()
 
 	aq, err := NewAQBanking("local")
 	if err != nil {
@@ -198,9 +149,9 @@ func main() {
 		aq.Version.Patchlevel,
 	)
 
-	registerPins(aq, gui)
+	gui.RegisterPins(aq, LoadPins("pins.json"))
 
-	listAccounts(aq)
 	listUsers(aq)
+	listAccounts(aq)
 	listTransactions(aq)
 }
