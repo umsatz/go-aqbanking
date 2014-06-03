@@ -3,6 +3,7 @@ package main
 import (
 	"errors"
 	"fmt"
+	"unsafe"
 )
 
 /*
@@ -11,6 +12,7 @@ import (
 #cgo LDFLAGS: -lgwenhywfar
 #cgo darwin CFLAGS: -I/usr/local/include/gwenhywfar4
 #cgo darwin CFLAGS: -I/usr/local/include/aqbanking5
+#include <stdlib.h>
 #include <aqbanking/banking.h>
 #include <aqbanking/banking_be.h>
 #include <aqhbci/user.h>
@@ -44,7 +46,17 @@ func (ul *UserCollection) Free() {
 
 func (ab *AQBanking) AddPinUser(userId, bankCode, name, serverUrl string) (User, error) {
 	var aqUser *C.AB_USER
-	var _ *C.AB_PROVIDER = C.AB_Banking_GetProvider(ab.Ptr, C.CString("aqhbci"))
+
+	var aqhbciProviderName *C.char = C.CString("aqhbci")
+	defer C.free(unsafe.Pointer(aqhbciProviderName))
+
+	var countryDe *C.char = C.CString("de")
+	defer C.free(unsafe.Pointer(countryDe))
+
+	var aqPinTan *C.char = C.CString("pintan")
+	defer C.free(unsafe.Pointer(aqPinTan))
+
+	var _ *C.AB_PROVIDER = C.AB_Banking_GetProvider(ab.Ptr, aqhbciProviderName)
 	hbciVersion := 300
 
 	if bankCode == "" {
@@ -64,14 +76,24 @@ func (ab *AQBanking) AddPinUser(userId, bankCode, name, serverUrl string) (User,
 		return User{}, errors.New(fmt.Sprintf("hbci version %d is not supported.", hbciVersion))
 	}
 
-	// TODO check for dups
-	// user = AB_Banking_FindUser(ab, AH_PROVIDER_NAME,
-	// 	"de",
-	// 	lbankId, luserId, lcustomerId)
-	// if user {
-	// 	DBG_ERROR(0, "User %s already exists", luserId)
-	// 	return 3
-	// }
+	var aqBankCode *C.char = C.CString(bankCode)
+	defer C.free(unsafe.Pointer(aqBankCode))
+	var aqUserId *C.char = C.CString(userId)
+	defer C.free(unsafe.Pointer(aqUserId))
+	var aqName *C.char = C.CString(name)
+	defer C.free(unsafe.Pointer(aqName))
+
+	aqUser = C.AB_Banking_FindUser(
+		ab.Ptr,
+		C.CString(C.AH_PROVIDER_NAME),
+		countryDe,
+		aqBankCode,
+		aqUserId,
+		aqUserId,
+	)
+	if aqUser != nil {
+		return User{}, errors.New(fmt.Sprintf("user %s already exists.", userId))
+	}
 
 	aqUser = C.AB_Banking_CreateUser(ab.Ptr, C.CString(C.AH_PROVIDER_NAME))
 	if aqUser == nil {
@@ -88,13 +110,13 @@ func (ab *AQBanking) AddPinUser(userId, bankCode, name, serverUrl string) (User,
 	}
 	defer C.GWEN_Url_free(url)
 
-	C.AB_User_SetUserName(aqUser, C.CString(name))
-	C.AB_User_SetCountry(aqUser, C.CString("de"))
-	C.AB_User_SetBankCode(aqUser, C.CString(bankCode))
-	C.AB_User_SetUserId(aqUser, C.CString(userId))
-	C.AB_User_SetCustomerId(aqUser, C.CString(userId))
+	C.AB_User_SetUserName(aqUser, aqName)
+	C.AB_User_SetCountry(aqUser, countryDe)
+	C.AB_User_SetBankCode(aqUser, aqBankCode)
+	C.AB_User_SetUserId(aqUser, aqUserId)
+	C.AB_User_SetCustomerId(aqUser, aqUserId)
 
-	// C.AH_User_SetTokenType(aqUser, C.CString("pintan"))
+	C.AH_User_SetTokenType(aqUser, aqPinTan)
 	C.AH_User_SetTokenContextId(aqUser, C.uint32_t(1))
 	C.AH_User_SetCryptMode(aqUser, C.AH_CryptMode_Pintan)
 	C.AH_User_SetHbciVersion(aqUser, C.int(hbciVersion))
