@@ -88,8 +88,8 @@ func listTransactions(ab *AQBanking) {
 		log.Fatal("unable to list accounts: %v", err)
 	}
 	defer accountList.Free()
-	// account := accountList.Accounts[len(accountList.Accounts)-1]
-	account := accountList.Accounts[0]
+	account := accountList.Accounts[len(accountList.Accounts)-1]
+	// account := accountList.Accounts[0]
 
 	transactions, err := ab.Transactions(account)
 	if err != nil {
@@ -100,6 +100,7 @@ func listTransactions(ab *AQBanking) {
 		fmt.Printf(`## %v
 '%v'
 MandateReference: %v
+CustomerReference: %v
 Category: %v
 Period: %v
 Type: %v
@@ -109,6 +110,7 @@ Total: %2.2f
 `, transaction.Purpose,
 			transaction.Text,
 			transaction.MandateReference,
+			transaction.CustomerReference,
 			transaction.Category,
 			transaction.TransactionPeriod,
 			transaction.Type,
@@ -121,23 +123,6 @@ Total: %2.2f
 func main() {
 	var gui *C.struct_GWEN_GUI = C.GWEN_Gui_CGui_new()
 	C.GWEN_Gui_SetGui(gui)
-
-	fmt.Printf("%d", AccountTypeBank)
-	// C.GWEN_Gui_AddFlags(gui, C.GWEN_GUI_FLAGS_NONINTERACTIVE)
-
-	// fmt.Println("%d", gui.flags)
-
-	// var fnc *C.GWEN_GUI_PRINT_FN
-	// fmt.Println("%#v", C.GWEN_Gui_SetPrintFn)
-	// C.GWEN_Gui_SetPrintFn(gui, &C.ASDPrint)
-
-	// GWEN_Gui_SetCheckCertFn
-	// GWEN_Gui_SetReadDialogPrefsFn
-	// GWEN_Gui_SetWriteDialogPrefsFn
-	// GWEN_Gui_SetRunDialogFn
-	// GWEN_Gui_SetGetPasswordFn
-	// GWEN_Gui_SetSetPasswordStatusFn
-	// GWEN_Gui_SetPrintFn
 
 	ab, err := NewAQBanking("local")
 	if err != nil {
@@ -153,5 +138,5 @@ func main() {
 
 	listAccounts(ab)
 	// listUsers(ab)
-	listTransactions(ab)
+	// listTransactions(ab)
 }
