@@ -117,7 +117,7 @@ func (ab *AQBanking) AddPinUser(userId, bankCode, name, serverUrl string) (User,
 	C.AB_User_SetCustomerId(aqUser, aqUserId)
 
 	C.AH_User_SetTokenType(aqUser, aqPinTan)
-	C.AH_User_SetTokenContextId(aqUser, C.uint32_t(1))
+	C.AH_User_SetTokenContextId(aqUser, C.uint32_t(1)) // context
 	C.AH_User_SetCryptMode(aqUser, C.AH_CryptMode_Pintan)
 	C.AH_User_SetHbciVersion(aqUser, C.int(hbciVersion))
 	C.AH_User_SetServerUrl(aqUser, url)
