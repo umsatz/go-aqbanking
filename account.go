@@ -50,7 +50,7 @@ type AccountList struct {
 
 func (al *AccountList) Free() {
 	al.Accounts = make([]Account, 0)
-	C.AB_Account_List2_FreeAll(al.Ptr)
+	C.AB_Account_List2_free(al.Ptr)
 }
 
 // implements AB_Banking_GetAccounts
