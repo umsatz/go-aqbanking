@@ -80,6 +80,30 @@ CustomerId: %v
 	}
 }
 
+func listTransactions(ab *AQBanking) {
+	accountList, err := ab.Accounts()
+	if err != nil {
+		log.Fatal("unable to list accounts: %v", err)
+	}
+	defer accountList.Free()
+	// account := accountList.Accounts[len(accountList.Accounts)-1]
+	account := accountList.Accounts[0]
+
+	transactions, err := ab.Transactions(account)
+	if err != nil {
+		log.Fatalf("unable to get transactions!: %v", err)
+	}
+
+	for _, transaction := range transactions {
+		fmt.Printf(`## %v
+Currency: %v
+Total: %2.2f
+`, transaction.Purpose,
+			transaction.Currency,
+			transaction.Total)
+	}
+}
+
 func main() {
 	var gui *C.struct_GWEN_GUI = C.GWEN_Gui_CGui_new()
 	C.GWEN_Gui_SetGui(gui)
@@ -111,23 +135,7 @@ func main() {
 		ab.Version.Patchlevel,
 	)
 
-	accountList, err := ab.Accounts()
-	if err != nil {
-		log.Fatal("unable to list accounts: %v", err)
-	}
-	defer accountList.Free()
-	account := accountList.Accounts[len(accountList.Accounts)-1]
-
 	// listAccounts(ab)
 	// listUsers(ab)
-	transactions, err := ab.Transactions(account)
-	if err != nil {
-		log.Fatalf("unable to get transactions!: %v", err)
-	}
-
-	for _, transaction := range transactions {
-		fmt.Printf(`## %v
-
-`, transaction.Purpose)
-	}
+	listTransactions(ab)
 }

@@ -54,7 +54,8 @@ func (ab *AQBanking) Transactions(acc Account) ([]Transaction, error) {
 
 	for abInfo != nil {
 		var abTransaction *C.AB_TRANSACTION = C.AB_ImExporterAccountInfo_GetFirstTransaction(abInfo)
-		for i := 0; abTransaction != nil; i++ {
+
+		for abTransaction != nil {
 			var abValue *C.AB_VALUE
 			abValue = C.AB_Transaction_GetValue(abTransaction)
 			if abValue != nil {
@@ -64,9 +65,6 @@ func (ab *AQBanking) Transactions(acc Account) ([]Transaction, error) {
 				transaction.Total = float32(C.AB_Value_GetValueAsDouble(abValue))
 
 				transactions = append(transactions, transaction)
-			}
-			if i > 5 {
-				break
 			}
 
 			abTransaction = C.AB_ImExporterAccountInfo_GetNextTransaction(abInfo)
