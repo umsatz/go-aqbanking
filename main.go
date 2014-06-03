@@ -36,6 +36,7 @@ func listAccounts(ab *AQBanking) {
 	for _, account := range list.Accounts {
 		fmt.Printf(`## %v
 Owner: %v
+Type: %d
 Currency: %v
 Country: %v
 AccountNumber: %v
@@ -47,6 +48,7 @@ BIC: %v
 `,
 			account.Name,
 			account.Owner,
+			account.Type,
 			account.Currency,
 			account.Country,
 			account.AccountNumber,
@@ -107,6 +109,8 @@ Total: %2.2f
 func main() {
 	var gui *C.struct_GWEN_GUI = C.GWEN_Gui_CGui_new()
 	C.GWEN_Gui_SetGui(gui)
+
+	fmt.Printf("%d", AccountTypeBank)
 	// C.GWEN_Gui_AddFlags(gui, C.GWEN_GUI_FLAGS_NONINTERACTIVE)
 
 	// fmt.Println("%d", gui.flags)
@@ -135,7 +139,7 @@ func main() {
 		ab.Version.Patchlevel,
 	)
 
-	// listAccounts(ab)
+	listAccounts(ab)
 	// listUsers(ab)
-	listTransactions(ab)
+	// listTransactions(ab)
 }

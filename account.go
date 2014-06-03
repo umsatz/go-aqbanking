@@ -11,6 +11,19 @@ import "errors"
 */
 import "C"
 
+type AccountType int
+
+const (
+	AccountTypeUnknown     AccountType = iota
+	AccountTypeBank        AccountType = iota
+	AccountTypeCreditCard  AccountType = iota
+	AccountTypeChecking    AccountType = iota
+	AccountTypeSavings     AccountType = iota
+	AccountTypeInvestment  AccountType = iota
+	AccountTypeCash        AccountType = iota
+	AccountTypeMoneyMarket AccountType = iota
+)
+
 type Account struct {
 	Name          string
 	AccountNumber string
@@ -21,7 +34,9 @@ type Account struct {
 	Currency      string
 	Country       string
 	Bank          Bank
-	Ptr           *C.AB_ACCOUNT
+	Type          AccountType
+
+	Ptr *C.AB_ACCOUNT
 }
 
 type Bank struct {
@@ -69,6 +84,7 @@ func (ab *AQBanking) Accounts() (*AccountList, error) {
 		account.AccountNumber = C.GoString(C.AB_Account_GetAccountNumber(abAccount))
 		account.IBAN = C.GoString(C.AB_Account_GetIBAN(abAccount))
 		account.BIC = C.GoString(C.AB_Account_GetBIC(abAccount))
+		account.Type = AccountType(C.AB_Account_GetAccountType(abAccount))
 
 		account.Bank = Bank{}
 		account.Bank.Name = C.GoString(C.AB_Account_GetBankName(abAccount))
