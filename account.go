@@ -11,19 +11,6 @@ import "errors"
 */
 import "C"
 
-type AccountType int
-
-const (
-	AccountTypeUnknown     AccountType = iota
-	AccountTypeBank        AccountType = iota
-	AccountTypeCreditCard  AccountType = iota
-	AccountTypeChecking    AccountType = iota
-	AccountTypeSavings     AccountType = iota
-	AccountTypeInvestment  AccountType = iota
-	AccountTypeCash        AccountType = iota
-	AccountTypeMoneyMarket AccountType = iota
-)
-
 type Account struct {
 	Name          string
 	AccountNumber string
@@ -34,7 +21,6 @@ type Account struct {
 	Currency      string
 	Country       string
 	Bank          Bank
-	Type          AccountType
 
 	Ptr *C.AB_ACCOUNT
 }
@@ -57,6 +43,26 @@ func (a *Account) FirstUser() User {
 	return newUser(C.AB_Account_GetFirstUser(a.Ptr))
 }
 
+func newAccount(a *C.AB_ACCOUNT) Account {
+	account := Account{}
+
+	account.Name = C.GoString(C.AB_Account_GetAccountName(a))
+	account.Owner = C.GoString(C.AB_Account_GetOwnerName(a))
+	account.Currency = C.GoString(C.AB_Account_GetCurrency(a))
+	account.Country = C.GoString(C.AB_Account_GetCountry(a))
+
+	account.BankCode = C.GoString(C.AB_Account_GetBankCode(a))
+	account.AccountNumber = C.GoString(C.AB_Account_GetAccountNumber(a))
+	account.IBAN = C.GoString(C.AB_Account_GetIBAN(a))
+	account.BIC = C.GoString(C.AB_Account_GetBIC(a))
+
+	account.Bank = Bank{}
+	account.Bank.Name = C.GoString(C.AB_Account_GetBankName(a))
+	account.Ptr = a
+
+	return account
+}
+
 // implements AB_Banking_GetAccounts
 func (ab *AQBanking) Accounts() (*AccountCollection, error) {
 	var abAccountList *C.AB_ACCOUNT_LIST2 = C.AB_Banking_GetAccounts(ab.Ptr)
@@ -77,24 +83,8 @@ func (ab *AQBanking) Accounts() (*AccountCollection, error) {
 	abAccount = C.AB_Account_List2Iterator_Data(abIterator)
 
 	for i := 0; abAccount != nil; i++ {
-		account := Account{}
+		list.Accounts[i] = newAccount(abAccount)
 
-		account.Name = C.GoString(C.AB_Account_GetAccountName(abAccount))
-		account.Owner = C.GoString(C.AB_Account_GetOwnerName(abAccount))
-		account.Currency = C.GoString(C.AB_Account_GetCurrency(abAccount))
-		account.Country = C.GoString(C.AB_Account_GetCountry(abAccount))
-
-		account.BankCode = C.GoString(C.AB_Account_GetBankCode(abAccount))
-		account.AccountNumber = C.GoString(C.AB_Account_GetAccountNumber(abAccount))
-		account.IBAN = C.GoString(C.AB_Account_GetIBAN(abAccount))
-		account.BIC = C.GoString(C.AB_Account_GetBIC(abAccount))
-		account.Type = AccountType(C.AB_Account_GetAccountType(abAccount))
-
-		account.Bank = Bank{}
-		account.Bank.Name = C.GoString(C.AB_Account_GetBankName(abAccount))
-		account.Ptr = abAccount
-
-		list.Accounts[i] = account
 		abAccount = C.AB_Account_List2Iterator_Next(abIterator)
 	}
 

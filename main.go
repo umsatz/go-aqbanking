@@ -29,7 +29,6 @@ func listAccounts(ab *AQBanking) {
 		fmt.Printf(`
 ## %v
 Owner: %v
-Type: %d
 Currency: %v
 Country: %v
 AccountNumber: %v
@@ -40,7 +39,6 @@ BIC: %v
 `,
 			account.Name,
 			account.Owner,
-			account.Type,
 			account.Currency,
 			account.Country,
 			account.AccountNumber,
