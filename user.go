@@ -133,6 +133,24 @@ func (ab *AQBanking) AddPinTanUser(user *User) error {
 	return nil
 }
 
+func (u *User) Remove(aq *AQBanking) error {
+	accountCollection, err := aq.AccountsFor(u)
+	if err != nil {
+		return err
+	}
+
+	for _, account := range accountCollection.Accounts {
+		if err := account.Remove(aq); err != nil {
+			return err
+		}
+	}
+
+	if err := C.AB_Banking_DeleteUser(aq.Ptr, u.Ptr); err != 0 {
+		return errors.New(fmt.Sprintf("unable to delete user: %d\n", err))
+	}
+	return nil
+}
+
 func (u *User) FetchAccounts(aq *AQBanking) error {
 	var ctx *C.AB_IMEXPORTER_CONTEXT = C.AB_ImExporterContext_new()
 

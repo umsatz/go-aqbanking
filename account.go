@@ -1,6 +1,9 @@
 package main
 
-import "errors"
+import (
+	"errors"
+	"fmt"
+)
 
 /*
 #cgo LDFLAGS: -laqbanking
@@ -61,6 +64,33 @@ func newAccount(a *C.AB_ACCOUNT) Account {
 	account.Ptr = a
 
 	return account
+}
+
+func (a *Account) Remove(aq *AQBanking) error {
+	if err := C.AB_Banking_DeleteAccount(aq.Ptr, a.Ptr); err != 0 {
+		return errors.New(fmt.Sprintf("unable to delete account: %d\n", err))
+	}
+	return nil
+}
+
+func (ab *AQBanking) AccountsFor(u *User) (*AccountCollection, error) {
+	allAccountCollection, err := ab.Accounts()
+	if err != nil {
+		return nil, err
+	}
+	defer allAccountCollection.Free()
+
+	var list *AccountCollection = &AccountCollection{}
+	list.Accounts = make([]Account, 0)
+
+	for _, account := range allAccountCollection.Accounts {
+		accUser := account.FirstUser()
+		if accUser.Id == u.Id {
+			list.Accounts = append(list.Accounts, account)
+		}
+	}
+
+	return list, nil
 }
 
 // implements AB_Banking_GetAccounts
