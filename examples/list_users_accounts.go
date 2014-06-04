@@ -12,6 +12,8 @@ func main() {
 	defer gui.Free()
 
 	aq, err := aq.DefaultAQBanking()
+	// alternativly, customize the aqbanking path:
+	// aq, err := aq.NewAQBanking("custom", "./tmp")
 	if err != nil {
 		log.Fatal("unable to init aqbanking: %v", err)
 	}
