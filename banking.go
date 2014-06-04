@@ -3,6 +3,7 @@ package main
 import (
 	"errors"
 	"fmt"
+	"unsafe"
 )
 
 /*
@@ -27,11 +28,22 @@ type AQBanking struct {
 	Ptr *C.AB_BANKING
 }
 
-func NewAQBanking(name string) (*AQBanking, error) {
+func NewAQBanking(name string, dbPath string) (*AQBanking, error) {
 	inst := &AQBanking{}
 	inst.Name = name
 
-	inst.Ptr = C.AB_Banking_new(C.CString(inst.Name), nil, 0)
+	var cName *C.char = C.CString(name)
+	defer C.free(unsafe.Pointer(cName))
+
+	if dbPath == "" {
+		inst.Ptr = C.AB_Banking_new(cName, nil, 0)
+	} else {
+		var cPath *C.char = C.CString(dbPath)
+		defer C.free(unsafe.Pointer(cPath))
+
+		inst.Ptr = C.AB_Banking_new(cName, cPath, 0)
+	}
+
 	if err := C.AB_Banking_Init(inst.Ptr); err != 0 {
 		return nil, errors.New(fmt.Sprintf("unable to initialized aqbanking: %d", err))
 	}
@@ -42,6 +54,10 @@ func NewAQBanking(name string) (*AQBanking, error) {
 	inst.loadVersion()
 
 	return inst, nil
+}
+
+func DefaultAQBanking() (*AQBanking, error) {
+	return NewAQBanking("local", "")
 }
 
 func (ab *AQBanking) loadVersion() {

@@ -14,8 +14,9 @@ type Gui C.struct_GWEN_GUI
 
 func newGui(interactive bool) *Gui {
 	var gui *C.struct_GWEN_GUI = C.GWEN_Gui_CGui_new()
+	C.GWEN_Gui_AddFlags(gui, C.GWEN_GUI_FLAGS_ACCEPTVALIDCERTS)
 	if !interactive {
-		C.GWEN_Gui_SetFlags(gui, C.GWEN_GUI_FLAGS_ACCEPTVALIDCERTS|C.GWEN_GUI_FLAGS_NONINTERACTIVE)
+		C.GWEN_Gui_AddFlags(gui, C.GWEN_GUI_FLAGS_NONINTERACTIVE)
 	}
 	C.GWEN_Gui_SetCharSet(gui, C.CString("UTF-8"))
 	C.GWEN_Gui_SetGui(gui)

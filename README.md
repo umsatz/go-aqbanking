@@ -7,7 +7,6 @@ go run !(*_test).go
 
 ## TODO
 
-- custom aqbanking conf dirs
 - Test for memory leaks
 - Write-Support
   - Accounts
