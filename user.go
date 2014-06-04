@@ -156,6 +156,7 @@ func newUser(ptr *C.AB_USER) User {
 	user.UserId = C.GoString(C.AB_User_GetUserId(ptr))
 	user.CustomerId = C.GoString(C.AB_User_GetCustomerId(ptr))
 	user.Name = C.GoString(C.AB_User_GetUserName(ptr))
+	user.BankCode = C.GoString(C.AB_User_GetBankCode(ptr))
 
 	user.Ptr = ptr
 	return user
