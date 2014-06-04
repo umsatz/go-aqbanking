@@ -11,7 +11,16 @@ package main
 import "C"
 import "fmt"
 
-type Gui C.struct_GWEN_GUI
+type Gui struct {
+	Ptr    *C.struct_GWEN_GUI
+	dbPins *C.GWEN_DB_NODE
+}
+
+type Pin interface {
+	BankCode() string
+	UserId() string
+	Pin() string
+}
 
 func newGui(interactive bool) *Gui {
 	var gui *C.struct_GWEN_GUI = C.GWEN_Gui_CGui_new()
@@ -27,7 +36,13 @@ func newGui(interactive bool) *Gui {
 	// C.GWEN_Logger_SetLevel(C.CString(C.AQBANKING_LOGDOMAIN), C.GWEN_LoggerLevel_Error)
 	// C.GWEN_Logger_SetLevel(C.CString(C.GWEN_LOGDOMAIN), C.GWEN_LoggerLevel_Error)
 
-	return (*Gui)(gui)
+	var dbPins *C.GWEN_DB_NODE = C.GWEN_DB_Group_new(C.CString("pins"))
+	C.GWEN_Gui_CGui_SetPasswordDb(gui, dbPins, 1)
+
+	return &Gui{
+		gui,
+		dbPins,
+	}
 }
 
 func NewNonInteractiveGui() *Gui {
@@ -35,23 +50,16 @@ func NewNonInteractiveGui() *Gui {
 }
 
 func (g *Gui) Attach(aq *AQBanking) {
-	C.AB_Gui_Extend((*C.struct_GWEN_GUI)(g), aq.Ptr)
+	C.AB_Gui_Extend(g.Ptr, aq.Ptr)
 }
 
-func (g *Gui) RegisterPins(pins []Pin) {
-	var dbPins *C.GWEN_DB_NODE = C.GWEN_DB_Group_new(C.CString("pins"))
+func (g *Gui) RegisterPin(pin Pin) {
+	str := fmt.Sprintf("PIN_%v_%v=%v\n", pin.BankCode(), pin.UserId(), pin.Pin())
+	pinLen := len(str)
 
-	for _, pin := range pins {
-		str := fmt.Sprintf("PIN_%v_%v=%v\n", pin.Blz, pin.UserId, pin.Pin)
-		pinLen := len(str)
-
-		C.GWEN_DB_ReadFromString(dbPins, C.CString(str), C.int(pinLen), C.GWEN_PATH_FLAGS_CREATE_GROUP|C.GWEN_DB_FLAGS_DEFAULT)
-		break
-	}
-
-	C.GWEN_Gui_CGui_SetPasswordDb((*C.struct_GWEN_GUI)(g), dbPins, 1)
+	C.GWEN_DB_ReadFromString(g.dbPins, C.CString(str), C.int(pinLen), C.GWEN_PATH_FLAGS_CREATE_GROUP|C.GWEN_DB_FLAGS_DEFAULT)
 }
 
 func (g *Gui) Free() {
-	C.GWEN_Gui_free((*C.struct_GWEN_GUI)(g))
+	C.GWEN_Gui_free(g.Ptr)
 }

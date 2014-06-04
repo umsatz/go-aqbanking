@@ -150,7 +150,9 @@ func main() {
 		aq.Version.Patchlevel,
 	)
 
-	gui.RegisterPins(LoadPins("pins.json"))
+	for _, pin := range LoadPins("pins.json") {
+		gui.RegisterPin(&pin)
+	}
 
 	listUsers(aq)
 	listAccounts(aq)

@@ -6,20 +6,30 @@ import (
 	"os"
 )
 
-type Pin struct {
-	Blz    string `json:"blz"`
-	UserId string `json:"uid"`
-	Pin    string `json:"pin"`
+type pin struct {
+	Blz string `json:"blz"`
+	Uid string `json:"uid"`
+	PIN string `json:"pin"`
 }
 
-func LoadPins(filename string) []Pin {
+func (p *pin) BankCode() string {
+	return p.Blz
+}
+func (p *pin) UserId() string {
+	return p.Uid
+}
+func (p *pin) Pin() string {
+	return p.PIN
+}
+
+func LoadPins(filename string) []pin {
 	f, err := os.Open(filename)
 	if err != nil {
 		log.Fatal("%v", err)
 		return nil
 	}
 
-	var pins []Pin
+	var pins []pin
 	err = json.NewDecoder(f).Decode(&pins)
 	if err != nil {
 		log.Fatal("%v", err)
