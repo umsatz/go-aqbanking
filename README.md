@@ -20,10 +20,8 @@ go run !(*_test).go
 
 - Test for memory leaks
 - Write-Support
-  - Accounts
   - Transactions
-- Transactions:
-  - Standing Orders
-  - Foreign Transfers
-  - Investment Transfers
+    - Standing Orders
+    - Foreign Transfers
+    - Investment Transfers
 - Tests
