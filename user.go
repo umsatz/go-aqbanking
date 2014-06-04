@@ -24,13 +24,18 @@ import (
 */
 import "C"
 
+type HbciUser struct {
+	User
+	ServerUrl   string
+	HbciVersion int
+}
+
 type User struct {
 	Id         int
-	UserId     string
-	CustomerId string
+	UserId     string // Benutzerkennung
+	CustomerId string // Kundennummer
+	BankCode   string // BLZ
 	Name       string
-	Country    string
-	ServerUrl  string
 
 	Ptr *C.AB_USER
 }
@@ -47,7 +52,7 @@ func (ul *UserCollection) Free() {
 
 // implements the simplified, pintan only workflow from
 // src/plugins/backends/aqhbci/tools/aqhbci-tool/adduser.c
-func (ab *AQBanking) AddPinUser(userId, bankCode, name, serverUrl string) (User, error) {
+func (ab *AQBanking) AddPinTanUser(user *HbciUser) error {
 	var aqUser *C.AB_USER
 
 	var aqhbciProviderName *C.char = C.CString("aqhbci")
@@ -60,13 +65,12 @@ func (ab *AQBanking) AddPinUser(userId, bankCode, name, serverUrl string) (User,
 	defer C.free(unsafe.Pointer(aqPinTan))
 
 	var _ *C.AB_PROVIDER = C.AB_Banking_GetProvider(ab.Ptr, aqhbciProviderName)
-	hbciVersion := 300
 
-	if bankCode == "" {
-		return User{}, errors.New("no bankCode given.")
+	if user.BankCode == "" {
+		return errors.New("no bankCode given.")
 	}
-	if userId == "" {
-		return User{}, errors.New("no userId given")
+	if user.UserId == "" {
+		return errors.New("no userid given")
 	}
 
 	var supportHBCIVersions map[int]struct{} = map[int]struct{}{
@@ -75,15 +79,17 @@ func (ab *AQBanking) AddPinUser(userId, bankCode, name, serverUrl string) (User,
 		220: struct{}{},
 		300: struct{}{},
 	}
-	if _, ok := supportHBCIVersions[hbciVersion]; ok != true {
-		return User{}, errors.New(fmt.Sprintf("hbci version %d is not supported.", hbciVersion))
+	if _, ok := supportHBCIVersions[user.HbciVersion]; ok != true {
+		return errors.New(fmt.Sprintf("hbci version %d is not supported.", user.HbciVersion))
 	}
 
-	var aqBankCode *C.char = C.CString(bankCode)
+	var aqBankCode *C.char = C.CString(user.BankCode)
 	defer C.free(unsafe.Pointer(aqBankCode))
-	var aqUserId *C.char = C.CString(userId)
+
+	var aqUserId *C.char = C.CString(user.UserId)
 	defer C.free(unsafe.Pointer(aqUserId))
-	var aqName *C.char = C.CString(name)
+
+	var aqName *C.char = C.CString(user.Name)
 	defer C.free(unsafe.Pointer(aqName))
 
 	aqUser = C.AB_Banking_FindUser(
@@ -95,17 +101,17 @@ func (ab *AQBanking) AddPinUser(userId, bankCode, name, serverUrl string) (User,
 		aqUserId,
 	)
 	if aqUser != nil {
-		return User{}, errors.New(fmt.Sprintf("user %s already exists.", userId))
+		return errors.New(fmt.Sprintf("user %s already exists.", user.UserId))
 	}
 
 	aqUser = C.AB_Banking_CreateUser(ab.Ptr, C.CString(C.AH_PROVIDER_NAME))
 	if aqUser == nil {
-		return User{}, errors.New("unable to create user.")
+		return errors.New("unable to create user.")
 	}
 
-	var url *C.GWEN_URL = C.GWEN_Url_fromString(C.CString(serverUrl))
+	var url *C.GWEN_URL = C.GWEN_Url_fromString(C.CString(user.ServerUrl))
 	if url == nil {
-		return User{}, errors.New("invalid server url.")
+		return errors.New("invalid server url.")
 	}
 	C.GWEN_Url_SetProtocol(url, C.CString("https"))
 	if C.GWEN_Url_GetPort(url) == 0 {
@@ -122,12 +128,13 @@ func (ab *AQBanking) AddPinUser(userId, bankCode, name, serverUrl string) (User,
 	C.AH_User_SetTokenType(aqUser, aqPinTan)
 	C.AH_User_SetTokenContextId(aqUser, C.uint32_t(1)) // context
 	C.AH_User_SetCryptMode(aqUser, C.AH_CryptMode_Pintan)
-	C.AH_User_SetHbciVersion(aqUser, C.int(hbciVersion))
+	C.AH_User_SetHbciVersion(aqUser, C.int(user.HbciVersion))
 	C.AH_User_SetServerUrl(aqUser, url)
 
 	C.AB_Banking_AddUser(ab.Ptr, aqUser)
+	user.Ptr = aqUser
 
-	return User{}, nil
+	return nil
 }
 
 func (u *User) FetchAccounts(aq *AQBanking) error {
@@ -149,7 +156,6 @@ func newUser(ptr *C.AB_USER) User {
 	user.UserId = C.GoString(C.AB_User_GetUserId(ptr))
 	user.CustomerId = C.GoString(C.AB_User_GetCustomerId(ptr))
 	user.Name = C.GoString(C.AB_User_GetUserName(ptr))
-	user.Country = C.GoString(C.AB_User_GetCountry(ptr))
 
 	user.Ptr = ptr
 	return user
