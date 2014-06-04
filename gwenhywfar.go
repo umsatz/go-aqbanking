@@ -9,9 +9,9 @@ package main
 import "C"
 import "time"
 
-type GwStringList C.GWEN_STRINGLIST
+type gwStringList C.GWEN_STRINGLIST
 
-func (list *GwStringList) toString() string {
+func (list *gwStringList) toString() string {
 	str := ""
 	size := int(C.GWEN_StringList_Count((*C.GWEN_STRINGLIST)(list)))
 	for i := 0; i < size; i++ {
@@ -21,9 +21,9 @@ func (list *GwStringList) toString() string {
 	return str
 }
 
-type GwTime C.GWEN_TIME
+type gwTime C.GWEN_TIME
 
-func (gt *GwTime) toTime() time.Time {
+func (gt *gwTime) toTime() time.Time {
 	var seconds int64 = int64(C.GWEN_Time_Seconds((*C.GWEN_TIME)(gt)))
 	return time.Unix(seconds, 0)
 }

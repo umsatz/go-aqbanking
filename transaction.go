@@ -53,13 +53,13 @@ func newTransaction(t *C.AB_TRANSACTION) (Transaction, bool) {
 
 	transaction := Transaction{}
 
-	transaction.Purpose = (*GwStringList)(C.AB_Transaction_GetPurpose(t)).toString()
+	transaction.Purpose = (*gwStringList)(C.AB_Transaction_GetPurpose(t)).toString()
 	transaction.Text = C.GoString(C.AB_Transaction_GetTransactionText(t))
 	transaction.Status = C.GoString(C.AB_Transaction_Status_toString(C.AB_Transaction_GetStatus(t)))
 	transaction.MandateReference = C.GoString(C.AB_Transaction_GetMandateReference(t))
 	transaction.CustomerReference = C.GoString(C.AB_Transaction_GetCustomerReference(t))
-	transaction.Date = (*GwTime)(C.AB_Transaction_GetDate(t)).toTime()
-	transaction.ValutaDate = (*GwTime)(C.AB_Transaction_GetValutaDate(t)).toTime()
+	transaction.Date = (*gwTime)(C.AB_Transaction_GetDate(t)).toTime()
+	transaction.ValutaDate = (*gwTime)(C.AB_Transaction_GetValutaDate(t)).toTime()
 
 	transaction.Total = float32(C.AB_Value_GetValueAsDouble(v))
 	transaction.TotalCurrency = C.GoString(C.AB_Value_GetCurrency(v))
@@ -80,7 +80,7 @@ func newTransaction(t *C.AB_TRANSACTION) (Transaction, bool) {
 	transaction.RemoteBIC = C.GoString(C.AB_Transaction_GetRemoteBic(t))
 	transaction.RemoteBankCode = C.GoString(C.AB_Transaction_GetRemoteBankCode(t))
 	transaction.RemoteAccountNumber = C.GoString(C.AB_Transaction_GetRemoteAccountNumber(t))
-	transaction.RemoteName = (*GwStringList)(C.AB_Transaction_GetRemoteName(t)).toString()
+	transaction.RemoteName = (*gwStringList)(C.AB_Transaction_GetRemoteName(t)).toString()
 
 	return transaction, true
 }
