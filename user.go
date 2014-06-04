@@ -24,18 +24,14 @@ import (
 */
 import "C"
 
-type HbciUser struct {
-	User
-	ServerUrl   string
-	HbciVersion int
-}
-
 type User struct {
-	Id         int
-	UserId     string // Benutzerkennung
-	CustomerId string // Kundennummer
-	BankCode   string // BLZ
-	Name       string
+	Id          int
+	UserId      string // Benutzerkennung
+	CustomerId  string // Kundennummer
+	BankCode    string // BLZ
+	Name        string
+	ServerUri   string
+	HbciVersion int
 
 	Ptr *C.AB_USER
 }
@@ -52,7 +48,7 @@ func (ul *UserCollection) Free() {
 
 // implements the simplified, pintan only workflow from
 // src/plugins/backends/aqhbci/tools/aqhbci-tool/adduser.c
-func (ab *AQBanking) AddPinTanUser(user *HbciUser) error {
+func (ab *AQBanking) AddPinTanUser(user *User) error {
 	var aqUser *C.AB_USER
 
 	var aqhbciProviderName *C.char = C.CString("aqhbci")
@@ -109,7 +105,7 @@ func (ab *AQBanking) AddPinTanUser(user *HbciUser) error {
 		return errors.New("unable to create user.")
 	}
 
-	var url *C.GWEN_URL = C.GWEN_Url_fromString(C.CString(user.ServerUrl))
+	var url *C.GWEN_URL = C.GWEN_Url_fromString(C.CString(user.ServerUri))
 	if url == nil {
 		return errors.New("invalid server url.")
 	}
