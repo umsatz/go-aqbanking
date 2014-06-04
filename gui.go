@@ -6,6 +6,7 @@ package main
 #cgo darwin CFLAGS: -I/usr/local/include/gwenhywfar4
 #cgo darwin CFLAGS: -I/usr/local/include/aqbanking5
 #include <gwenhywfar/cgui.h>
+#include <aqbanking/abgui.h>
 */
 import "C"
 import "fmt"
@@ -14,12 +15,18 @@ type Gui C.struct_GWEN_GUI
 
 func newGui(interactive bool) *Gui {
 	var gui *C.struct_GWEN_GUI = C.GWEN_Gui_CGui_new()
-	C.GWEN_Gui_AddFlags(gui, C.GWEN_GUI_FLAGS_ACCEPTVALIDCERTS)
+
 	if !interactive {
-		C.GWEN_Gui_AddFlags(gui, C.GWEN_GUI_FLAGS_NONINTERACTIVE)
+		C.GWEN_Gui_SetFlags(gui, C.GWEN_GUI_FLAGS_ACCEPTVALIDCERTS|C.GWEN_GUI_FLAGS_NONINTERACTIVE)
+	} else {
+		C.GWEN_Gui_SetFlags(gui, C.GWEN_GUI_FLAGS_ACCEPTVALIDCERTS)
 	}
 	C.GWEN_Gui_SetCharSet(gui, C.CString("UTF-8"))
 	C.GWEN_Gui_SetGui(gui)
+
+	// C.GWEN_Logger_SetLevel(C.CString(C.AQBANKING_LOGDOMAIN), C.GWEN_LoggerLevel_Error)
+	// C.GWEN_Logger_SetLevel(C.CString(C.GWEN_LOGDOMAIN), C.GWEN_LoggerLevel_Error)
+
 	return (*Gui)(gui)
 }
 
@@ -27,7 +34,11 @@ func NewNonInteractiveGui() *Gui {
 	return newGui(false)
 }
 
-func (g *Gui) RegisterPins(aq *AQBanking, pins []Pin) {
+func (g *Gui) Attach(aq *AQBanking) {
+	C.AB_Gui_Extend((*C.struct_GWEN_GUI)(g), aq.Ptr)
+}
+
+func (g *Gui) RegisterPins(pins []Pin) {
 	var dbPins *C.GWEN_DB_NODE = C.GWEN_DB_Group_new(C.CString("pins"))
 
 	for _, pin := range pins {
