@@ -85,11 +85,9 @@ func newTransaction(t *C.AB_TRANSACTION) (Transaction, bool) {
 	return transaction, true
 }
 
-// implements AB_JobGetTransactions_new
-func (ab *AQBanking) Transactions(acc Account) ([]Transaction, error) {
-	fmt.Println("before get transactions")
+func (ab *AQBanking) Transactions(acc *Account, from *time.Time, to *time.Time) ([]Transaction, error) {
 	var abJob *C.AB_JOB = C.AB_JobGetTransactions_new(acc.Ptr)
-	fmt.Println("after get transactions")
+
 	if abJob == nil {
 		return nil, errors.New("Unable to load transactions.")
 	}
@@ -98,9 +96,10 @@ func (ab *AQBanking) Transactions(acc Account) ([]Transaction, error) {
 		return nil, errors.New(fmt.Sprintf("Transactions is not supported by backend: %d", err))
 	}
 
-	// TODO set arguments?
-	// AB_JobGetTransactions_SetFromTime
-	// AB_JobGetTransactions_SetToTime
+	if from != nil && to != nil {
+		C.AB_JobGetTransactions_SetFromTime(abJob, (*C.GWEN_TIME)(newGwenTime(*from)))
+		C.AB_JobGetTransactions_SetToTime(abJob, (*C.GWEN_TIME)(newGwenTime(*to)))
+	}
 
 	var abJobList *C.AB_JOB_LIST2 = C.AB_Job_List2_new()
 	C.AB_Job_List2_PushBack(abJobList, abJob)
@@ -131,4 +130,9 @@ func (ab *AQBanking) Transactions(acc Account) ([]Transaction, error) {
 	C.AB_Job_free(abJob)
 
 	return transactions, nil
+}
+
+// implements AB_JobGetTransactions_new
+func (ab *AQBanking) AllTransactions(acc *Account) ([]Transaction, error) {
+	return ab.Transactions(acc, nil, nil)
 }

@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"log"
+	"time"
 )
 
 /*
@@ -72,7 +73,11 @@ CustomerId: %v
 }
 
 func listTransactionsFor(ab *AQBanking, account *Account) {
-	transactions, err := ab.Transactions(*account)
+	fromDate := time.Date(2014, 05, 14, 0, 0, 0, 0, time.UTC)
+	toDate := time.Date(2014, 05, 16, 0, 0, 0, 0, time.UTC)
+	transactions, err := ab.Transactions(account, &fromDate, &toDate)
+	// or
+	// transactions, err := ab.AllTransactions(account)
 	if err != nil {
 		log.Fatalf("unable to get transactions!: %v", err)
 	}

@@ -27,3 +27,8 @@ func (gt *gwTime) toTime() time.Time {
 	var seconds int64 = int64(C.GWEN_Time_Seconds((*C.GWEN_TIME)(gt)))
 	return time.Unix(seconds, 0)
 }
+
+func newGwenTime(date time.Time) *gwTime {
+	utcDate := date.UTC()
+	return (*gwTime)(C.GWEN_Time_fromSeconds(C.uint32_t(utcDate.Unix())))
+}
