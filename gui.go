@@ -17,6 +17,7 @@ func newGui(interactive bool) *Gui {
 	if !interactive {
 		C.GWEN_Gui_SetFlags(gui, C.GWEN_GUI_FLAGS_ACCEPTVALIDCERTS|C.GWEN_GUI_FLAGS_NONINTERACTIVE)
 	}
+	C.GWEN_Gui_SetCharSet(gui, C.CString("UTF-8"))
 	C.GWEN_Gui_SetGui(gui)
 	return (*Gui)(gui)
 }
