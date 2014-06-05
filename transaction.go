@@ -86,7 +86,7 @@ func newTransaction(t *C.AB_TRANSACTION) (Transaction, bool) {
 }
 
 func (ab *AQBanking) Transactions(acc *Account, from *time.Time, to *time.Time) ([]Transaction, error) {
-	var abJob *C.AB_JOB = C.AB_JobGetTransactions_new(acc.Ptr)
+	var abJob *C.AB_JOB = C.AB_JobGetTransactions_new(acc.ptr)
 
 	if abJob == nil {
 		return nil, errors.New("Unable to load transactions.")
@@ -105,7 +105,7 @@ func (ab *AQBanking) Transactions(acc *Account, from *time.Time, to *time.Time) 
 	C.AB_Job_List2_PushBack(abJobList, abJob)
 	var abContext *C.AB_IMEXPORTER_CONTEXT = C.AB_ImExporterContext_new()
 
-	if err := C.AB_Banking_ExecuteJobs(ab.Ptr, abJobList, abContext); err != 0 {
+	if err := C.AB_Banking_ExecuteJobs(ab.ptr, abJobList, abContext); err != 0 {
 		return nil, errors.New(fmt.Sprintf("Unable to execute Transactions: %d", err))
 	}
 

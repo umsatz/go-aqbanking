@@ -12,7 +12,7 @@ import "C"
 import "fmt"
 
 type Gui struct {
-	Ptr    *C.struct_GWEN_GUI
+	ptr    *C.struct_GWEN_GUI
 	dbPins *C.GWEN_DB_NODE
 }
 
@@ -50,7 +50,7 @@ func NewNonInteractiveGui() *Gui {
 }
 
 func (g *Gui) Attach(aq *AQBanking) {
-	C.AB_Gui_Extend(g.Ptr, aq.Ptr)
+	C.AB_Gui_Extend(g.ptr, aq.ptr)
 }
 
 func (g *Gui) RegisterPin(pin Pin) {
@@ -61,5 +61,5 @@ func (g *Gui) RegisterPin(pin Pin) {
 }
 
 func (g *Gui) Free() {
-	C.GWEN_Gui_free(g.Ptr)
+	C.GWEN_Gui_free(g.ptr)
 }

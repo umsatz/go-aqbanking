@@ -25,7 +25,7 @@ type AQBanking struct {
 	Name    string
 	Version AQBankingVersion
 
-	Ptr *C.AB_BANKING
+	ptr *C.AB_BANKING
 }
 
 func NewAQBanking(name string, dbPath string) (*AQBanking, error) {
@@ -36,18 +36,18 @@ func NewAQBanking(name string, dbPath string) (*AQBanking, error) {
 	defer C.free(unsafe.Pointer(cName))
 
 	if dbPath == "" {
-		inst.Ptr = C.AB_Banking_new(cName, nil, 0)
+		inst.ptr = C.AB_Banking_new(cName, nil, 0)
 	} else {
 		var cPath *C.char = C.CString(dbPath)
 		defer C.free(unsafe.Pointer(cPath))
 
-		inst.Ptr = C.AB_Banking_new(cName, cPath, 0)
+		inst.ptr = C.AB_Banking_new(cName, cPath, 0)
 	}
 
-	if err := C.AB_Banking_Init(inst.Ptr); err != 0 {
+	if err := C.AB_Banking_Init(inst.ptr); err != 0 {
 		return nil, errors.New(fmt.Sprintf("unable to initialized aqbanking: %d", err))
 	}
-	if err := C.AB_Banking_OnlineInit(inst.Ptr); err != 0 {
+	if err := C.AB_Banking_OnlineInit(inst.ptr); err != 0 {
 		return nil, errors.New(fmt.Sprintf("unable to initialized aqbanking: %d", err))
 	}
 
@@ -67,11 +67,11 @@ func (ab *AQBanking) loadVersion() {
 }
 
 func (ab *AQBanking) Free() error {
-	if err := C.AB_Banking_OnlineFini(ab.Ptr); err != 0 {
+	if err := C.AB_Banking_OnlineFini(ab.ptr); err != 0 {
 		return errors.New(fmt.Sprintf("unable to free aqbanking online: %d\n", err))
 	}
 
-	C.AB_Banking_Fini(ab.Ptr)
-	C.AB_Banking_free(ab.Ptr)
+	C.AB_Banking_Fini(ab.ptr)
+	C.AB_Banking_free(ab.ptr)
 	return nil
 }

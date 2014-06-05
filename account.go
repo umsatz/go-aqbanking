@@ -25,7 +25,7 @@ type Account struct {
 	Country       string
 	Bank          Bank
 
-	Ptr *C.AB_ACCOUNT
+	ptr *C.AB_ACCOUNT
 }
 
 type Bank struct {
@@ -34,16 +34,16 @@ type Bank struct {
 
 type AccountCollection struct {
 	Accounts []Account
-	Ptr      *C.AB_ACCOUNT_LIST2
+	ptr      *C.AB_ACCOUNT_LIST2
 }
 
 func (al *AccountCollection) Free() {
 	al.Accounts = make([]Account, 0)
-	C.AB_Account_List2_free(al.Ptr)
+	C.AB_Account_List2_free(al.ptr)
 }
 
 func (a *Account) FirstUser() User {
-	return newUser(C.AB_Account_GetFirstUser(a.Ptr))
+	return newUser(C.AB_Account_GetFirstUser(a.ptr))
 }
 
 func newAccount(a *C.AB_ACCOUNT) Account {
@@ -61,13 +61,13 @@ func newAccount(a *C.AB_ACCOUNT) Account {
 
 	account.Bank = Bank{}
 	account.Bank.Name = C.GoString(C.AB_Account_GetBankName(a))
-	account.Ptr = a
+	account.ptr = a
 
 	return account
 }
 
 func (a *Account) Remove(aq *AQBanking) error {
-	if err := C.AB_Banking_DeleteAccount(aq.Ptr, a.Ptr); err != 0 {
+	if err := C.AB_Banking_DeleteAccount(aq.ptr, a.ptr); err != 0 {
 		return errors.New(fmt.Sprintf("unable to delete account: %d\n", err))
 	}
 	return nil
@@ -95,7 +95,7 @@ func (ab *AQBanking) AccountsFor(u *User) (*AccountCollection, error) {
 
 // implements AB_Banking_GetAccounts
 func (ab *AQBanking) Accounts() (*AccountCollection, error) {
-	var abAccountList *C.AB_ACCOUNT_LIST2 = C.AB_Banking_GetAccounts(ab.Ptr)
+	var abAccountList *C.AB_ACCOUNT_LIST2 = C.AB_Banking_GetAccounts(ab.ptr)
 	if abAccountList == nil {
 		// no accounts available
 		return &AccountCollection{}, nil
@@ -103,7 +103,7 @@ func (ab *AQBanking) Accounts() (*AccountCollection, error) {
 
 	var list *AccountCollection = &AccountCollection{}
 	list.Accounts = make([]Account, C.AB_Account_List2_GetSize(abAccountList))
-	list.Ptr = abAccountList
+	list.ptr = abAccountList
 
 	var abIterator *C.AB_ACCOUNT_LIST2_ITERATOR = C.AB_Account_List2_First(abAccountList)
 	if abIterator == nil {

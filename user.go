@@ -33,17 +33,17 @@ type User struct {
 	ServerUri   string
 	HbciVersion int
 
-	Ptr *C.AB_USER
+	ptr *C.AB_USER
 }
 
 type UserCollection struct {
 	Users []User
-	Ptr   *C.AB_USER_LIST2
+	ptr   *C.AB_USER_LIST2
 }
 
 func (ul *UserCollection) Free() {
 	ul.Users = make([]User, 0)
-	C.AB_User_List2_free(ul.Ptr)
+	C.AB_User_List2_free(ul.ptr)
 }
 
 // implements the simplified, pintan only workflow from
@@ -60,7 +60,7 @@ func (ab *AQBanking) AddPinTanUser(user *User) error {
 	var aqPinTan *C.char = C.CString("pintan")
 	defer C.free(unsafe.Pointer(aqPinTan))
 
-	var _ *C.AB_PROVIDER = C.AB_Banking_GetProvider(ab.Ptr, aqhbciProviderName)
+	var _ *C.AB_PROVIDER = C.AB_Banking_GetProvider(ab.ptr, aqhbciProviderName)
 
 	if user.BankCode == "" {
 		return errors.New("no bankCode given.")
@@ -89,7 +89,7 @@ func (ab *AQBanking) AddPinTanUser(user *User) error {
 	defer C.free(unsafe.Pointer(aqName))
 
 	aqUser = C.AB_Banking_FindUser(
-		ab.Ptr,
+		ab.ptr,
 		C.CString(C.AH_PROVIDER_NAME),
 		countryDe,
 		aqBankCode,
@@ -100,7 +100,7 @@ func (ab *AQBanking) AddPinTanUser(user *User) error {
 		return errors.New(fmt.Sprintf("user %s already exists.", user.UserId))
 	}
 
-	aqUser = C.AB_Banking_CreateUser(ab.Ptr, C.CString(C.AH_PROVIDER_NAME))
+	aqUser = C.AB_Banking_CreateUser(ab.ptr, C.CString(C.AH_PROVIDER_NAME))
 	if aqUser == nil {
 		return errors.New("unable to create user.")
 	}
@@ -127,8 +127,8 @@ func (ab *AQBanking) AddPinTanUser(user *User) error {
 	C.AH_User_SetHbciVersion(aqUser, C.int(user.HbciVersion))
 	C.AH_User_SetServerUrl(aqUser, url)
 
-	C.AB_Banking_AddUser(ab.Ptr, aqUser)
-	user.Ptr = aqUser
+	C.AB_Banking_AddUser(ab.ptr, aqUser)
+	user.ptr = aqUser
 
 	return nil
 }
@@ -145,7 +145,7 @@ func (u *User) Remove(aq *AQBanking) error {
 		}
 	}
 
-	if err := C.AB_Banking_DeleteUser(aq.Ptr, u.Ptr); err != 0 {
+	if err := C.AB_Banking_DeleteUser(aq.ptr, u.ptr); err != 0 {
 		return errors.New(fmt.Sprintf("unable to delete user: %d\n", err))
 	}
 	return nil
@@ -154,8 +154,8 @@ func (u *User) Remove(aq *AQBanking) error {
 func (u *User) FetchAccounts(aq *AQBanking) error {
 	var ctx *C.AB_IMEXPORTER_CONTEXT = C.AB_ImExporterContext_new()
 
-	var pro *C.AB_PROVIDER = C.AB_Banking_GetProvider(aq.Ptr, C.CString("aqhbci"))
-	if err := C.AH_Provider_GetAccounts(pro, u.Ptr, ctx, 1, 0, 1); err != 0 {
+	var pro *C.AB_PROVIDER = C.AB_Banking_GetProvider(aq.ptr, C.CString("aqhbci"))
+	if err := C.AH_Provider_GetAccounts(pro, u.ptr, ctx, 1, 0, 1); err != 0 {
 		return errors.New(fmt.Sprintf("Error getting accounts (%d)", err))
 	}
 
@@ -172,13 +172,13 @@ func newUser(ptr *C.AB_USER) User {
 	user.Name = C.GoString(C.AB_User_GetUserName(ptr))
 	user.BankCode = C.GoString(C.AB_User_GetBankCode(ptr))
 
-	user.Ptr = ptr
+	user.ptr = ptr
 	return user
 }
 
 // implements AB_Banking_GetUsers
 func (ab *AQBanking) Users() (*UserCollection, error) {
-	var abUserList *C.AB_USER_LIST2 = C.AB_Banking_GetUsers(ab.Ptr)
+	var abUserList *C.AB_USER_LIST2 = C.AB_Banking_GetUsers(ab.ptr)
 	if abUserList == nil {
 		// no users available
 		return &UserCollection{}, nil
@@ -186,6 +186,7 @@ func (ab *AQBanking) Users() (*UserCollection, error) {
 
 	collection := &UserCollection{}
 	collection.Users = make([]User, C.AB_Account_List2_GetSize(abUserList))
+	collection.ptr = abUserList
 
 	var abIterator *C.AB_USER_LIST2_ITERATOR = C.AB_User_List2_First(abUserList)
 	if abIterator == nil {
