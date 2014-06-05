@@ -183,6 +183,21 @@ func newUser(ptr *C.AB_USER) User {
 	user.Name = C.GoString(C.AB_User_GetUserName(ptr))
 	user.BankCode = C.GoString(C.AB_User_GetBankCode(ptr))
 
+	var url *C.GWEN_URL = C.AH_User_GetServerUrl(ptr)
+	if url != nil {
+		var tbuf *C.GWEN_BUFFER = C.GWEN_Buffer_new(
+			nil,
+			C.uint32_t(256),
+			C.uint32_t(0),
+			C.int(1),
+		)
+		C.GWEN_Url_toString(url, tbuf)
+		user.ServerUri = C.GoString(C.GWEN_Buffer_GetStart(tbuf))
+		C.GWEN_Buffer_free(tbuf)
+	}
+
+	user.HbciVersion = int(C.AH_User_GetHbciVersion(ptr))
+
 	user.ptr = ptr
 	return user
 }
