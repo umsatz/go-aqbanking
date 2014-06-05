@@ -36,12 +36,19 @@ type User struct {
 	ptr *C.AB_USER
 }
 
+func (u *User) Free() {
+	C.AB_User_free(u.ptr)
+}
+
 type UserCollection struct {
 	Users []User
 	ptr   *C.AB_USER_LIST2
 }
 
 func (ul *UserCollection) Free() {
+	for i, _ := range ul.Users {
+		ul.Users[i].Free()
+	}
 	ul.Users = make([]User, 0)
 	C.AB_User_List2_free(ul.ptr)
 }
