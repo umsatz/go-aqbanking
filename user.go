@@ -53,6 +53,13 @@ func (ul *UserCollection) Free() {
 	C.AB_User_List2_free(ul.ptr)
 }
 
+var supportHBCIVersions map[int]struct{} = map[int]struct{}{
+	201: struct{}{},
+	210: struct{}{},
+	220: struct{}{},
+	300: struct{}{},
+}
+
 // implements the simplified, pintan only workflow from
 // src/plugins/backends/aqhbci/tools/aqhbci-tool/adduser.c
 func (ab *AQBanking) AddPinTanUser(user *User) error {
@@ -64,6 +71,10 @@ func (ab *AQBanking) AddPinTanUser(user *User) error {
 	}
 	if user.ServerUri == "" {
 		return errors.New("no server_url given")
+	}
+
+	if _, ok := supportHBCIVersions[user.HbciVersion]; ok != true {
+		return errors.New(fmt.Sprintf("hbci version %d is not supported.", user.HbciVersion))
 	}
 
 	var aqUser *C.AB_USER
@@ -78,16 +89,6 @@ func (ab *AQBanking) AddPinTanUser(user *User) error {
 	defer C.free(unsafe.Pointer(aqPinTan))
 
 	var _ *C.AB_PROVIDER = C.AB_Banking_GetProvider(ab.ptr, aqhbciProviderName)
-
-	var supportHBCIVersions map[int]struct{} = map[int]struct{}{
-		201: struct{}{},
-		210: struct{}{},
-		220: struct{}{},
-		300: struct{}{},
-	}
-	if _, ok := supportHBCIVersions[user.HbciVersion]; ok != true {
-		return errors.New(fmt.Sprintf("hbci version %d is not supported.", user.HbciVersion))
-	}
 
 	var aqBankCode *C.char = C.CString(user.BankCode)
 	defer C.free(unsafe.Pointer(aqBankCode))
