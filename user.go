@@ -56,6 +56,16 @@ func (ul *UserCollection) Free() {
 // implements the simplified, pintan only workflow from
 // src/plugins/backends/aqhbci/tools/aqhbci-tool/adduser.c
 func (ab *AQBanking) AddPinTanUser(user *User) error {
+	if user.BankCode == "" {
+		return errors.New("no bankCode given.")
+	}
+	if user.UserId == "" {
+		return errors.New("no userid given")
+	}
+	if user.ServerUri == "" {
+		return errors.New("no server_url given")
+	}
+
 	var aqUser *C.AB_USER
 
 	var aqhbciProviderName *C.char = C.CString("aqhbci")
@@ -68,13 +78,6 @@ func (ab *AQBanking) AddPinTanUser(user *User) error {
 	defer C.free(unsafe.Pointer(aqPinTan))
 
 	var _ *C.AB_PROVIDER = C.AB_Banking_GetProvider(ab.ptr, aqhbciProviderName)
-
-	if user.BankCode == "" {
-		return errors.New("no bankCode given.")
-	}
-	if user.UserId == "" {
-		return errors.New("no userid given")
-	}
 
 	var supportHBCIVersions map[int]struct{} = map[int]struct{}{
 		201: struct{}{},
