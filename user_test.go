@@ -55,7 +55,4 @@ func TestAddUserAndListUsers(t *testing.T) {
 			t.Fatalf("wrong value for attribute %v. expected '%v' got '%v'", key, values[0], values[1])
 		}
 	}
-	// if loadedUser.BankCode != user.BankCode {
-
-	// }
 }
