@@ -32,12 +32,20 @@ type Bank struct {
 	Name string
 }
 
+func (a *Account) Free() {
+	C.AB_Account_free(a.ptr)
+}
+
 type AccountCollection struct {
 	Accounts []Account
 	ptr      *C.AB_ACCOUNT_LIST2
 }
 
 func (al *AccountCollection) Free() {
+	for i, _ := range al.Accounts {
+		al.Accounts[i].Free()
+	}
+
 	al.Accounts = make([]Account, 0)
 	C.AB_Account_List2_free(al.ptr)
 }
