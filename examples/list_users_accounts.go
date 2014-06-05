@@ -8,16 +8,12 @@ import (
 )
 
 func main() {
-	gui := aq.NewNonInteractiveGui()
-	defer gui.Free()
-
 	aq, err := aq.DefaultAQBanking()
 	// alternativly, customize the aqbanking path:
 	// aq, err := aq.NewAQBanking("custom", "./tmp")
 	if err != nil {
 		log.Fatal("unable to init aqbanking: %v", err)
 	}
-	gui.Attach(aq)
 	defer aq.Free()
 
 	fmt.Printf("using aqbanking %d.%d.%d\n",

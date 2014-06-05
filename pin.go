@@ -6,6 +6,12 @@ import (
 	"os"
 )
 
+type Pin interface {
+	BankCode() string
+	UserId() string
+	Pin() string
+}
+
 type pin struct {
 	Blz string `json:"blz"`
 	Uid string `json:"uid"`

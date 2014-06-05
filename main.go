@@ -139,14 +139,10 @@ func listTransactions(ab *AQBanking) {
 }
 
 func main() {
-	gui := NewNonInteractiveGui()
-	defer gui.Free()
-
 	aq, err := NewAQBanking("custom", "./tmp")
 	if err != nil {
 		log.Fatal("unable to init aqbanking: %v", err)
 	}
-	gui.Attach(aq)
 	defer aq.Free()
 
 	fmt.Printf("using aqbanking %d.%d.%d\n",
@@ -156,7 +152,7 @@ func main() {
 	)
 
 	for _, pin := range LoadPins("pins.json") {
-		gui.RegisterPin(&pin)
+		aq.RegisterPin(&pin)
 	}
 
 	listUsers(aq)

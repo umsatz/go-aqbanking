@@ -24,8 +24,8 @@ type AQBankingVersion struct {
 type AQBanking struct {
 	Name    string
 	Version AQBankingVersion
-
-	ptr *C.AB_BANKING
+	gui     *gui
+	ptr     *C.AB_BANKING
 }
 
 func NewAQBanking(name string, dbPath string) (*AQBanking, error) {
@@ -53,6 +53,9 @@ func NewAQBanking(name string, dbPath string) (*AQBanking, error) {
 
 	inst.loadVersion()
 
+	inst.gui = newNonInteractiveGui()
+	inst.gui.attach(inst)
+
 	return inst, nil
 }
 
@@ -71,7 +74,10 @@ func (ab *AQBanking) Free() error {
 		return errors.New(fmt.Sprintf("unable to free aqbanking online: %d\n", err))
 	}
 
+	ab.gui.free()
+
 	C.AB_Banking_Fini(ab.ptr)
 	C.AB_Banking_free(ab.ptr)
+
 	return nil
 }
