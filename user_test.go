@@ -6,6 +6,41 @@ import (
 	"testing"
 )
 
+func TestRemoveUser(t *testing.T) {
+	defer os.RemoveAll("./tmp")
+
+	aq, err := NewAQBanking("user tests", "./tmp")
+	if err != nil {
+		t.Fatalf("unable to create aqbanking instance: %v", err)
+	}
+	defer aq.Free()
+
+	user := User{
+		-1,
+		"1",
+		"2",
+		"3",
+		"4",
+		"5",
+		300,
+		nil,
+	}
+
+	if err := aq.AddPinTanUser(&user); err != nil {
+		t.Fatalf("unable to create aqbanking instance: %v", err)
+	}
+
+	if users, _ := aq.Users(); len(users.Users) != 1 {
+		t.Fatalf("unable to create user.")
+	}
+
+	user.Remove(aq)
+
+	if users, _ := aq.Users(); len(users.Users) != 0 {
+		t.Fatalf("unable to remove user.")
+	}
+}
+
 func TestAddUserAndListUsers(t *testing.T) {
 	defer os.RemoveAll("./tmp")
 
