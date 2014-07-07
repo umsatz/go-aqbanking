@@ -211,7 +211,7 @@ func (ab *AQBanking) Users() (*UserCollection, error) {
 	}
 
 	collection := &UserCollection{}
-	collection.Users = make([]User, C.AB_Account_List2_GetSize(abUserList))
+	collection.Users = make([]User, C.AB_User_List2_GetSize(abUserList))
 	collection.ptr = abUserList
 
 	var abIterator *C.AB_USER_LIST2_ITERATOR = C.AB_User_List2_First(abUserList)
