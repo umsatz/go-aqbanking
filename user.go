@@ -37,35 +37,38 @@ type User struct {
 	ptr *C.AB_USER
 }
 
+// Free frees the underlying aqbanking pointer for this user
 func (u *User) Free() {
 	C.AB_User_free(u.ptr)
 }
 
+// UserCollection wraps a list of aqbanking users to handle the collection pointer
 type UserCollection struct {
 	Users []User
 	ptr   *C.AB_USER_LIST2
 }
 
+// Free frees all user accounts as well as the underlying collection pointer
 func (ul *UserCollection) Free() {
-	for i, _ := range ul.Users {
+	for i := range ul.Users {
 		ul.Users[i].Free()
 	}
 	ul.Users = make([]User, 0)
 	C.AB_User_List2_free(ul.ptr)
 }
 
-var supportHBCIVersions map[int]struct{} = map[int]struct{}{
+var supportedHBCIVersions = map[int]struct{}{
 	201: struct{}{},
 	210: struct{}{},
 	220: struct{}{},
 	300: struct{}{},
 }
 
-// implements the simplified, pintan only workflow from
+// AddPinTanUser implements the simplified, pintan only workflow from
 // src/plugins/backends/aqhbci/tools/aqhbci-tool/adduser.c
 func (ab *AQBanking) AddPinTanUser(user *User) error {
 	if user.BankCode == "" {
-		return errors.New("no bankCode given.")
+		return errors.New("no bankCode given")
 	}
 	if user.UserID == "" {
 		return errors.New("no userid given")
@@ -74,30 +77,30 @@ func (ab *AQBanking) AddPinTanUser(user *User) error {
 		return errors.New("no server_url given")
 	}
 
-	if _, ok := supportHBCIVersions[user.HbciVersion]; ok != true {
-		return fmt.Errorf("hbci version %d is not supported.", user.HbciVersion)
+	if _, ok := supportedHBCIVersions[user.HbciVersion]; ok != true {
+		return fmt.Errorf("hbci version %d is not supported", user.HbciVersion)
 	}
 
 	var aqUser *C.AB_USER
 
-	var aqhbciProviderName *C.char = C.CString("aqhbci")
+	aqhbciProviderName := C.CString("aqhbci")
 	defer C.free(unsafe.Pointer(aqhbciProviderName))
 
-	var countryDe *C.char = C.CString("de")
+	countryDe := C.CString("de")
 	defer C.free(unsafe.Pointer(countryDe))
 
-	var aqPinTan *C.char = C.CString("pintan")
+	aqPinTan := C.CString("pintan")
 	defer C.free(unsafe.Pointer(aqPinTan))
 
 	var _ *C.AB_PROVIDER = C.AB_Banking_GetProvider(ab.ptr, aqhbciProviderName)
 
-	var aqBankCode *C.char = C.CString(user.BankCode)
+	aqBankCode := C.CString(user.BankCode)
 	defer C.free(unsafe.Pointer(aqBankCode))
 
-	var aqUserId *C.char = C.CString(user.UserID)
-	defer C.free(unsafe.Pointer(aqUserId))
+	aqUserID := C.CString(user.UserID)
+	defer C.free(unsafe.Pointer(aqUserID))
 
-	var aqName *C.char = C.CString(user.Name)
+	aqName := C.CString(user.Name)
 	defer C.free(unsafe.Pointer(aqName))
 
 	aqUser = C.AB_Banking_FindUser(
@@ -105,21 +108,21 @@ func (ab *AQBanking) AddPinTanUser(user *User) error {
 		C.CString(C.AH_PROVIDER_NAME),
 		countryDe,
 		aqBankCode,
-		aqUserId,
-		aqUserId,
+		aqUserID,
+		aqUserID,
 	)
 	if aqUser != nil {
-		return fmt.Errorf("user %s already exists.", user.UserID)
+		return fmt.Errorf("user %s already exists", user.UserID)
 	}
 
 	aqUser = C.AB_Banking_CreateUser(ab.ptr, C.CString(C.AH_PROVIDER_NAME))
 	if aqUser == nil {
-		return errors.New("unable to create user.")
+		return errors.New("unable to create user")
 	}
 
-	var url *C.GWEN_URL = C.GWEN_Url_fromString(C.CString(user.ServerURI))
+	url := C.GWEN_Url_fromString(C.CString(user.ServerURI))
 	if url == nil {
-		return errors.New("invalid server url.")
+		return errors.New("invalid server url")
 	}
 	C.GWEN_Url_SetProtocol(url, C.CString("https"))
 	if C.GWEN_Url_GetPort(url) == 0 {
@@ -130,8 +133,8 @@ func (ab *AQBanking) AddPinTanUser(user *User) error {
 	C.AB_User_SetUserName(aqUser, aqName)
 	C.AB_User_SetCountry(aqUser, countryDe)
 	C.AB_User_SetBankCode(aqUser, aqBankCode)
-	C.AB_User_SetUserId(aqUser, aqUserId)
-	C.AB_User_SetCustomerId(aqUser, aqUserId)
+	C.AB_User_SetUserId(aqUser, aqUserID)
+	C.AB_User_SetCustomerId(aqUser, aqUserID)
 
 	C.AH_User_SetTokenType(aqUser, aqPinTan)
 	C.AH_User_SetTokenContextId(aqUser, C.uint32_t(1)) // context
@@ -145,6 +148,7 @@ func (ab *AQBanking) AddPinTanUser(user *User) error {
 	return nil
 }
 
+// Remove removes a user from the given aqbanking database
 func (u *User) Remove(aq *AQBanking) error {
 	accountCollection, err := aq.AccountsFor(u)
 	if err != nil {
@@ -158,17 +162,18 @@ func (u *User) Remove(aq *AQBanking) error {
 	}
 
 	if err := C.AB_Banking_DeleteUser(aq.ptr, u.ptr); err != 0 {
-		return errors.New(fmt.Sprintf("unable to delete user: %d\n", err))
+		return fmt.Errorf("unable to delete user: %d\n", err)
 	}
 	return nil
 }
 
+// FetchAccounts returns all accounts registered for a given aqbanking instance
 func (u *User) FetchAccounts(aq *AQBanking) error {
-	var ctx *C.AB_IMEXPORTER_CONTEXT = C.AB_ImExporterContext_new()
+	ctx := C.AB_ImExporterContext_new()
 
-	var pro *C.AB_PROVIDER = C.AB_Banking_GetProvider(aq.ptr, C.CString("aqhbci"))
+	pro := C.AB_Banking_GetProvider(aq.ptr, C.CString("aqhbci"))
 	if err := C.AH_Provider_GetAccounts(pro, u.ptr, ctx, 1, 0, 1); err != 0 {
-		return errors.New(fmt.Sprintf("Error getting accounts (%d)", err))
+		return fmt.Errorf("Error getting accounts (%d)", err)
 	}
 
 	C.AB_ImExporterContext_free(ctx)
@@ -184,9 +189,9 @@ func newUser(ptr *C.AB_USER) User {
 	user.Name = C.GoString(C.AB_User_GetUserName(ptr))
 	user.BankCode = C.GoString(C.AB_User_GetBankCode(ptr))
 
-	var url *C.GWEN_URL = C.AH_User_GetServerUrl(ptr)
+	url := C.AH_User_GetServerUrl(ptr)
 	if url != nil {
-		var tbuf *C.GWEN_BUFFER = C.GWEN_Buffer_new(
+		tbuf := C.GWEN_Buffer_new(
 			nil,
 			C.uint32_t(256),
 			C.uint32_t(0),
@@ -203,9 +208,10 @@ func newUser(ptr *C.AB_USER) User {
 	return user
 }
 
-// implements AB_Banking_GetUsers
+// Users implements AB_Banking_GetUsers, returning all users registered
+// with aqbanking
 func (ab *AQBanking) Users() (*UserCollection, error) {
-	var abUserList *C.AB_USER_LIST2 = C.AB_Banking_GetUsers(ab.ptr)
+	abUserList := C.AB_Banking_GetUsers(ab.ptr)
 	if abUserList == nil {
 		// no users available
 		return &UserCollection{}, nil
@@ -215,7 +221,7 @@ func (ab *AQBanking) Users() (*UserCollection, error) {
 	collection.Users = make([]User, C.AB_User_List2_GetSize(abUserList))
 	collection.ptr = abUserList
 
-	var abIterator *C.AB_USER_LIST2_ITERATOR = C.AB_User_List2_First(abUserList)
+	abIterator := C.AB_User_List2_First(abUserList)
 	if abIterator == nil {
 		return nil, errors.New("Unable to get user iterator.")
 	}

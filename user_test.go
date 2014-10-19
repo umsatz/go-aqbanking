@@ -76,7 +76,7 @@ func TestAddUserAndListUsers(t *testing.T) {
 
 	loadedUser := users.Users[0]
 
-	var testAttrs map[string][]string = map[string][]string{
+	testAttrs := map[string][]string{
 		"BankCode":    []string{user.BankCode, loadedUser.BankCode},
 		"UserId":      []string{user.UserID, loadedUser.UserID},
 		"CustomerId":  []string{user.CustomerID, loadedUser.CustomerID},
