@@ -105,7 +105,7 @@ func (ab *AQBanking) AccountsFor(u *User) (*AccountCollection, error) {
 
 	for _, account := range allAccountCollection.Accounts {
 		accUser := account.FirstUser()
-		if accUser.Id == u.Id {
+		if accUser.ID == u.ID {
 			list.Accounts = append(list.Accounts, account)
 		}
 	}

@@ -78,10 +78,10 @@ func TestAddUserAndListUsers(t *testing.T) {
 
 	var testAttrs map[string][]string = map[string][]string{
 		"BankCode":    []string{user.BankCode, loadedUser.BankCode},
-		"UserId":      []string{user.UserId, loadedUser.UserId},
-		"CustomerId":  []string{user.CustomerId, loadedUser.CustomerId},
+		"UserId":      []string{user.UserID, loadedUser.UserID},
+		"CustomerId":  []string{user.CustomerID, loadedUser.CustomerID},
 		"Name":        []string{user.Name, loadedUser.Name},
-		"ServerUri":   []string{user.ServerUri, loadedUser.ServerUri},
+		"ServerUri":   []string{user.ServerURI, loadedUser.ServerURI},
 		"HbciVersion": []string{fmt.Sprintf("%d", user.HbciVersion), fmt.Sprintf("%d", loadedUser.HbciVersion)},
 	}
 

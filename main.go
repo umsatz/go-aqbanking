@@ -64,10 +64,10 @@ Name: %v
 UserId: %v
 CustomerId: %v
 `,
-			user.Id,
+			user.ID,
 			user.Name,
-			user.UserId,
-			user.CustomerId,
+			user.UserID,
+			user.CustomerID,
 		)
 	}
 }

@@ -24,13 +24,14 @@ import (
 */
 import "C"
 
+// User represents an aqbanking user account
 type User struct {
-	Id          int
-	UserId      string // Benutzerkennung
-	CustomerId  string // Kundennummer
+	ID          int
+	UserID      string // Benutzerkennung
+	CustomerID  string // Kundennummer
 	BankCode    string // BLZ
 	Name        string
-	ServerUri   string
+	ServerURI   string
 	HbciVersion int
 
 	ptr *C.AB_USER
@@ -66,15 +67,15 @@ func (ab *AQBanking) AddPinTanUser(user *User) error {
 	if user.BankCode == "" {
 		return errors.New("no bankCode given.")
 	}
-	if user.UserId == "" {
+	if user.UserID == "" {
 		return errors.New("no userid given")
 	}
-	if user.ServerUri == "" {
+	if user.ServerURI == "" {
 		return errors.New("no server_url given")
 	}
 
 	if _, ok := supportHBCIVersions[user.HbciVersion]; ok != true {
-		return errors.New(fmt.Sprintf("hbci version %d is not supported.", user.HbciVersion))
+		return fmt.Errorf("hbci version %d is not supported.", user.HbciVersion)
 	}
 
 	var aqUser *C.AB_USER
@@ -93,7 +94,7 @@ func (ab *AQBanking) AddPinTanUser(user *User) error {
 	var aqBankCode *C.char = C.CString(user.BankCode)
 	defer C.free(unsafe.Pointer(aqBankCode))
 
-	var aqUserId *C.char = C.CString(user.UserId)
+	var aqUserId *C.char = C.CString(user.UserID)
 	defer C.free(unsafe.Pointer(aqUserId))
 
 	var aqName *C.char = C.CString(user.Name)
@@ -108,7 +109,7 @@ func (ab *AQBanking) AddPinTanUser(user *User) error {
 		aqUserId,
 	)
 	if aqUser != nil {
-		return errors.New(fmt.Sprintf("user %s already exists.", user.UserId))
+		return fmt.Errorf("user %s already exists.", user.UserID)
 	}
 
 	aqUser = C.AB_Banking_CreateUser(ab.ptr, C.CString(C.AH_PROVIDER_NAME))
@@ -116,7 +117,7 @@ func (ab *AQBanking) AddPinTanUser(user *User) error {
 		return errors.New("unable to create user.")
 	}
 
-	var url *C.GWEN_URL = C.GWEN_Url_fromString(C.CString(user.ServerUri))
+	var url *C.GWEN_URL = C.GWEN_Url_fromString(C.CString(user.ServerURI))
 	if url == nil {
 		return errors.New("invalid server url.")
 	}
@@ -176,10 +177,10 @@ func (u *User) FetchAccounts(aq *AQBanking) error {
 
 func newUser(ptr *C.AB_USER) User {
 	user := User{}
-	user.Id = int(C.AB_User_GetUniqueId(ptr))
+	user.ID = int(C.AB_User_GetUniqueId(ptr))
 
-	user.UserId = C.GoString(C.AB_User_GetUserId(ptr))
-	user.CustomerId = C.GoString(C.AB_User_GetCustomerId(ptr))
+	user.UserID = C.GoString(C.AB_User_GetUserId(ptr))
+	user.CustomerID = C.GoString(C.AB_User_GetCustomerId(ptr))
 	user.Name = C.GoString(C.AB_User_GetUserName(ptr))
 	user.BankCode = C.GoString(C.AB_User_GetBankCode(ptr))
 
@@ -192,7 +193,7 @@ func newUser(ptr *C.AB_USER) User {
 			C.int(1),
 		)
 		C.GWEN_Url_toString(url, tbuf)
-		user.ServerUri = C.GoString(C.GWEN_Buffer_GetStart(tbuf))
+		user.ServerURI = C.GoString(C.GWEN_Buffer_GetStart(tbuf))
 		C.GWEN_Buffer_free(tbuf)
 	}
 
