@@ -8,21 +8,22 @@ import (
 
 type Pin interface {
 	BankCode() string
-	UserId() string
+	UserID() string
 	Pin() string
 }
 
 type pin struct {
 	Blz string `json:"blz"`
-	Uid string `json:"uid"`
+	UID string `json:"uid"`
 	PIN string `json:"pin"`
 }
 
 func (p *pin) BankCode() string {
 	return p.Blz
 }
-func (p *pin) UserId() string {
-	return p.Uid
+
+func (p *pin) UserID() string {
+	return p.UID
 }
 func (p *pin) Pin() string {
 	return p.PIN

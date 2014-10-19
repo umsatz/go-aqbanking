@@ -51,7 +51,7 @@ func (g *gui) attach(aq *AQBanking) {
 // required to allow go-aqbanking to operate non-interactively
 // Note that the pins must be registered prior to requesting accounts or transactions
 func (ab *AQBanking) RegisterPin(pin Pin) {
-	str := fmt.Sprintf("PIN_%v_%v=%v\n", pin.BankCode(), pin.UserId(), pin.Pin())
+	str := fmt.Sprintf("PIN_%v_%v=%v\n", pin.BankCode(), pin.UserID(), pin.Pin())
 	pinLen := len(str)
 
 	C.GWEN_DB_ReadFromString(ab.gui.dbPins, C.CString(str), C.int(pinLen), C.GWEN_PATH_FLAGS_CREATE_GROUP|C.GWEN_DB_FLAGS_DEFAULT)
