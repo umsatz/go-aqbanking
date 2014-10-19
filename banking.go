@@ -1,7 +1,6 @@
 package main
 
 import (
-	"errors"
 	"fmt"
 	"unsafe"
 )
@@ -15,12 +14,14 @@ import (
 */
 import "C"
 
+// AQBankingVersion wraps AQBanking version informations
 type AQBankingVersion struct {
 	Major      int
 	Minor      int
 	Patchlevel int
 }
 
+// AQBanking represents a single aqbanking database path, located at a given path
 type AQBanking struct {
 	Name    string
 	Version AQBankingVersion
@@ -28,27 +29,28 @@ type AQBanking struct {
 	ptr     *C.AB_BANKING
 }
 
+// NewAQBanking creates a new AQBanking instance, given valid database path and name
 func NewAQBanking(name string, dbPath string) (*AQBanking, error) {
 	inst := &AQBanking{}
 	inst.Name = name
 
-	var cName *C.char = C.CString(name)
+	cName := C.CString(name)
 	defer C.free(unsafe.Pointer(cName))
 
 	if dbPath == "" {
 		inst.ptr = C.AB_Banking_new(cName, nil, 0)
 	} else {
-		var cPath *C.char = C.CString(dbPath)
+		cPath := C.CString(dbPath)
 		defer C.free(unsafe.Pointer(cPath))
 
 		inst.ptr = C.AB_Banking_new(cName, cPath, 0)
 	}
 
 	if err := C.AB_Banking_Init(inst.ptr); err != 0 {
-		return nil, errors.New(fmt.Sprintf("unable to initialized aqbanking: %d", err))
+		return nil, fmt.Errorf("unable to initialized aqbanking: %d", err)
 	}
 	if err := C.AB_Banking_OnlineInit(inst.ptr); err != 0 {
-		return nil, errors.New(fmt.Sprintf("unable to initialized aqbanking: %d", err))
+		return nil, fmt.Errorf("unable to initialized aqbanking: %d", err)
 	}
 
 	inst.loadVersion()
@@ -59,6 +61,8 @@ func NewAQBanking(name string, dbPath string) (*AQBanking, error) {
 	return inst, nil
 }
 
+// DefaultAQBanking returns an aqbanking instance initialized with aqbankings default
+// database path (most likely $HOME)
 func DefaultAQBanking() (*AQBanking, error) {
 	return NewAQBanking("local", "")
 }
@@ -69,9 +73,10 @@ func (ab *AQBanking) loadVersion() {
 	ab.Version = AQBankingVersion{int(major), int(minor), int(patchlevel)}
 }
 
+// Free frees all underlying aqbanking pointers
 func (ab *AQBanking) Free() error {
 	if err := C.AB_Banking_OnlineFini(ab.ptr); err != 0 {
-		return errors.New(fmt.Sprintf("unable to free aqbanking online: %d\n", err))
+		return fmt.Errorf("unable to free aqbanking online: %d\n", err)
 	}
 
 	ab.gui.free()
