@@ -14,6 +14,9 @@ import (
 */
 import "C"
 
+// Account represents an aqbanking account
+// Right now Paypal and CreditCards are not supported, even though
+// aqbanking supports them.
 type Account struct {
 	Name          string
 	AccountNumber string
@@ -27,22 +30,27 @@ type Account struct {
 	ptr *C.AB_ACCOUNT
 }
 
+// Bank represents a credit institute
 type Bank struct {
 	Name     string
 	BankCode string
 }
 
+// Free frees the underlying aqbanking account pointer
 func (a *Account) Free() {
 	C.AB_Account_free(a.ptr)
 }
 
+// AccountCollection wraps working with multiple accounts, e.g. when searching by banking code.
+// Necessary to support proper freeing of the underlying aqbanking collection pointer
 type AccountCollection struct {
 	Accounts []Account
 	ptr      *C.AB_ACCOUNT_LIST2
 }
 
+// Free frees all accounts and the underlying collection pointer
 func (al *AccountCollection) Free() {
-	for i, _ := range al.Accounts {
+	for i := range al.Accounts {
 		al.Accounts[i].Free()
 	}
 
@@ -50,6 +58,7 @@ func (al *AccountCollection) Free() {
 	C.AB_Account_List2_free(al.ptr)
 }
 
+// FirstUser returns the first user associated with a given account
 func (a *Account) FirstUser() User {
 	return newUser(C.AB_Account_GetFirstUser(a.ptr))
 }
@@ -75,13 +84,15 @@ func newAccount(a *C.AB_ACCOUNT) Account {
 	return account
 }
 
+// Remove an Account from aqbanking files
 func (a *Account) Remove(aq *AQBanking) error {
 	if err := C.AB_Banking_DeleteAccount(aq.ptr, a.ptr); err != 0 {
-		return errors.New(fmt.Sprintf("unable to delete account: %d\n", err))
+		return fmt.Errorf("unable to delete account: %d\n", err)
 	}
 	return nil
 }
 
+// AccountsFor returns all accounts associated with a given user
 func (ab *AQBanking) AccountsFor(u *User) (*AccountCollection, error) {
 	allAccountCollection, err := ab.Accounts()
 	if err != nil {
@@ -89,7 +100,7 @@ func (ab *AQBanking) AccountsFor(u *User) (*AccountCollection, error) {
 	}
 	defer allAccountCollection.Free()
 
-	var list *AccountCollection = &AccountCollection{}
+	list := &AccountCollection{}
 	list.Accounts = make([]Account, 0)
 
 	for _, account := range allAccountCollection.Accounts {
@@ -102,19 +113,19 @@ func (ab *AQBanking) AccountsFor(u *User) (*AccountCollection, error) {
 	return list, nil
 }
 
-// implements AB_Banking_GetAccounts
+// Accounts returns all accounts registered with the given AQBanking instance
 func (ab *AQBanking) Accounts() (*AccountCollection, error) {
-	var abAccountList *C.AB_ACCOUNT_LIST2 = C.AB_Banking_GetAccounts(ab.ptr)
+	abAccountList := C.AB_Banking_GetAccounts(ab.ptr)
 	if abAccountList == nil {
 		// no accounts available
 		return &AccountCollection{}, nil
 	}
 
-	var list *AccountCollection = &AccountCollection{}
+	list := &AccountCollection{}
 	list.Accounts = make([]Account, C.AB_Account_List2_GetSize(abAccountList))
 	list.ptr = abAccountList
 
-	var abIterator *C.AB_ACCOUNT_LIST2_ITERATOR = C.AB_Account_List2_First(abAccountList)
+	abIterator := C.AB_Account_List2_First(abAccountList)
 	if abIterator == nil {
 		return nil, errors.New("Unable to get account iterator.")
 	}
