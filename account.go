@@ -17,7 +17,6 @@ import "C"
 type Account struct {
 	Name          string
 	AccountNumber string
-	BankCode      string
 	BIC           string
 	IBAN          string
 	Owner         string
@@ -29,7 +28,8 @@ type Account struct {
 }
 
 type Bank struct {
-	Name string
+	Name     string
+	BankCode string
 }
 
 func (a *Account) Free() {
@@ -62,13 +62,14 @@ func newAccount(a *C.AB_ACCOUNT) Account {
 	account.Currency = C.GoString(C.AB_Account_GetCurrency(a))
 	account.Country = C.GoString(C.AB_Account_GetCountry(a))
 
-	account.BankCode = C.GoString(C.AB_Account_GetBankCode(a))
 	account.AccountNumber = C.GoString(C.AB_Account_GetAccountNumber(a))
 	account.IBAN = C.GoString(C.AB_Account_GetIBAN(a))
 	account.BIC = C.GoString(C.AB_Account_GetBIC(a))
 
-	account.Bank = Bank{}
-	account.Bank.Name = C.GoString(C.AB_Account_GetBankName(a))
+	account.Bank = Bank{
+		Name:     C.GoString(C.AB_Account_GetBankName(a)),
+		BankCode: C.GoString(C.AB_Account_GetBankCode(a)),
+	}
 	account.ptr = a
 
 	return account

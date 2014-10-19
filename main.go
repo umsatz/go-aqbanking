@@ -41,7 +41,7 @@ BIC: %v
 			account.Currency,
 			account.Country,
 			account.AccountNumber,
-			account.BankCode,
+			account.Bank.BankCode,
 			account.Bank.Name,
 			account.IBAN,
 			account.BIC,
