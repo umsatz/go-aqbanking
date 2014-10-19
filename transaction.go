@@ -17,6 +17,7 @@ import (
 */
 import "C"
 
+// Transaction represents an aqbanking transaction
 type Transaction struct {
 	Purpose           string
 	Text              string
@@ -64,7 +65,7 @@ func newTransaction(t *C.AB_TRANSACTION) (Transaction, bool) {
 	transaction.Total = float32(C.AB_Value_GetValueAsDouble(v))
 	transaction.TotalCurrency = C.GoString(C.AB_Value_GetCurrency(v))
 
-	var f *C.AB_VALUE = C.AB_Transaction_GetFees(t)
+	f := C.AB_Transaction_GetFees(t)
 	if f != nil {
 		transaction.Fee = float32(C.AB_Value_GetValueAsDouble(f))
 		transaction.FeeCurrency = C.GoString(C.AB_Value_GetCurrency(f))
@@ -85,15 +86,17 @@ func newTransaction(t *C.AB_TRANSACTION) (Transaction, bool) {
 	return transaction, true
 }
 
+// Transactions implements AB_JobGetTransactions_new from aqbanking, listing
+// all transactions from a given aqbanking instance
 func (ab *AQBanking) Transactions(acc *Account, from *time.Time, to *time.Time) ([]Transaction, error) {
-	var abJob *C.AB_JOB = C.AB_JobGetTransactions_new(acc.ptr)
+	abJob := C.AB_JobGetTransactions_new(acc.ptr)
 
 	if abJob == nil {
 		return nil, errors.New("Unable to load transactions.")
 	}
 
 	if err := C.AB_Job_CheckAvailability(abJob); err != 0 {
-		return nil, errors.New(fmt.Sprintf("Transactions is not supported by backend: %d", err))
+		return nil, fmt.Errorf("Transactions is not supported by backend: %d", err)
 	}
 
 	if from != nil && to != nil {
@@ -101,19 +104,19 @@ func (ab *AQBanking) Transactions(acc *Account, from *time.Time, to *time.Time) 
 		C.AB_JobGetTransactions_SetToTime(abJob, (*C.GWEN_TIME)(newGwenTime(*to)))
 	}
 
-	var abJobList *C.AB_JOB_LIST2 = C.AB_Job_List2_new()
+	abJobList := C.AB_Job_List2_new()
 	C.AB_Job_List2_PushBack(abJobList, abJob)
-	var abContext *C.AB_IMEXPORTER_CONTEXT = C.AB_ImExporterContext_new()
+	abContext := C.AB_ImExporterContext_new()
 
 	if err := C.AB_Banking_ExecuteJobs(ab.ptr, abJobList, abContext); err != 0 {
-		return nil, errors.New(fmt.Sprintf("Unable to execute Transactions: %d", err))
+		return nil, fmt.Errorf("Unable to execute Transactions: %d", err)
 	}
 
-	var abInfo *C.AB_IMEXPORTER_ACCOUNTINFO = C.AB_ImExporterContext_GetFirstAccountInfo(abContext)
-	var transactions []Transaction = make([]Transaction, 0)
+	abInfo := C.AB_ImExporterContext_GetFirstAccountInfo(abContext)
+	var transactions = make([]Transaction, 0)
 
 	for abInfo != nil {
-		var abTransaction *C.AB_TRANSACTION = C.AB_ImExporterAccountInfo_GetFirstTransaction(abInfo)
+		abTransaction := C.AB_ImExporterAccountInfo_GetFirstTransaction(abInfo)
 
 		for abTransaction != nil {
 			transaction, ok := newTransaction(abTransaction)
@@ -132,7 +135,7 @@ func (ab *AQBanking) Transactions(acc *Account, from *time.Time, to *time.Time) 
 	return transactions, nil
 }
 
-// implements AB_JobGetTransactions_new
+// AllTransactions implements AB_JobGetTransactions_new without filter
 func (ab *AQBanking) AllTransactions(acc *Account) ([]Transaction, error) {
 	return ab.Transactions(acc, nil, nil)
 }
