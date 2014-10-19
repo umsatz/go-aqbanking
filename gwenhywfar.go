@@ -24,7 +24,7 @@ func (list *gwStringList) toString() string {
 type gwTime C.GWEN_TIME
 
 func (gt *gwTime) toTime() time.Time {
-	var seconds int64 = int64(C.GWEN_Time_Seconds((*C.GWEN_TIME)(gt)))
+	seconds := int64(C.GWEN_Time_Seconds((*C.GWEN_TIME)(gt)))
 	return time.Unix(seconds, 0)
 }
 
