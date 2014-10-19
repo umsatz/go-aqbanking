@@ -152,7 +152,7 @@ func main() {
 	)
 
 	for _, pin := range LoadPins("pins.json") {
-		aq.RegisterPin(&pin)
+		aq.RegisterPin(pin)
 	}
 
 	listUsers(aq)
