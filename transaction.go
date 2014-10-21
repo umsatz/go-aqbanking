@@ -13,6 +13,7 @@ import (
 #cgo darwin CFLAGS: -I/usr/local/include/aqbanking5
 #include <aqbanking/jobgettransactions.h>
 #include <aqbanking/banking.h>
+#include <aqbanking/job.h>
 #include <aqbanking/banking_ob.h>
 */
 import "C"
@@ -110,6 +111,10 @@ func (ab *AQBanking) Transactions(acc *Account, from *time.Time, to *time.Time) 
 
 	if err := C.AB_Banking_ExecuteJobs(ab.ptr, abJobList, abContext); err != 0 {
 		return nil, fmt.Errorf("Unable to execute Transactions: %d", err)
+	}
+
+	if C.AB_Job_GetStatus(abJob) == C.AB_Job_StatusError {
+		return nil, errors.New(C.GoString(C.AB_Job_GetResultText(abJob)))
 	}
 
 	abInfo := C.AB_ImExporterContext_GetFirstAccountInfo(abContext)
