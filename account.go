@@ -45,17 +45,6 @@ func (a *Account) Free() {
 // Necessary to support proper freeing of the underlying aqbanking collection pointer
 type AccountCollection struct {
 	Accounts []Account
-	ptr      *C.AB_ACCOUNT_LIST2
-}
-
-// Free frees all accounts and the underlying collection pointer
-func (al *AccountCollection) Free() {
-	for i := range al.Accounts {
-		al.Accounts[i].Free()
-	}
-
-	al.Accounts = make([]Account, 0)
-	C.AB_Account_List2_free(al.ptr)
 }
 
 // FirstUser returns the first user associated with a given account
@@ -98,7 +87,6 @@ func (ab *AQBanking) AccountsFor(u *User) (*AccountCollection, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer allAccountCollection.Free()
 
 	list := &AccountCollection{}
 	list.Accounts = make([]Account, 0)
@@ -123,7 +111,6 @@ func (ab *AQBanking) Accounts() (*AccountCollection, error) {
 
 	list := &AccountCollection{}
 	list.Accounts = make([]Account, C.AB_Account_List2_GetSize(abAccountList))
-	list.ptr = abAccountList
 
 	abIterator := C.AB_Account_List2_First(abAccountList)
 	if abIterator == nil {
@@ -141,6 +128,7 @@ func (ab *AQBanking) Accounts() (*AccountCollection, error) {
 
 	C.AB_Account_List2Iterator_free(abIterator)
 	C.AB_Account_free(abAccount)
+	C.AB_Account_List2_free(abAccountList)
 
 	return list, nil
 }

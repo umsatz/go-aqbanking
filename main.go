@@ -21,7 +21,6 @@ func listAccounts(ab *AQBanking) {
 	if err != nil {
 		log.Fatal("unable to list accounts: %v", err)
 	}
-	defer accountCollection.Free()
 
 	fmt.Println("%%\nAccounts")
 	for _, account := range accountCollection.Accounts {
@@ -131,7 +130,6 @@ func listTransactions(ab *AQBanking) {
 	if err != nil {
 		log.Fatal("unable to list accounts: %v", err)
 	}
-	defer accountList.Free()
 
 	for _, account := range accountList.Accounts {
 		listTransactionsFor(ab, &account)

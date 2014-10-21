@@ -41,7 +41,6 @@ func main() {
 	if err != nil {
 		log.Fatal("unable to list accounts: %v", err)
 	}
-	defer accountCollection.Free()
 
 	fmt.Printf("found %d accounts.\n", len(accountCollection.Accounts))
 
