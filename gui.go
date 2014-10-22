@@ -7,13 +7,34 @@ package main
 #cgo darwin CFLAGS: -I/usr/local/include/aqbanking5
 #include <gwenhywfar/cgui.h>
 #include <aqbanking/abgui.h>
+#include <gwenhywfar/gwenhywfar.h>
+
+int callMeOnGo_cgo(GWEN_GUI *gui,
+		uint32_t flags,
+		const char *token,
+		const char *title,
+		const char *text,
+		char *buffer,
+		int minLen,
+		int maxLen,
+		uint32_t guiid
+	);
 */
 import "C"
-import "fmt"
+import (
+	"fmt"
+	"unsafe"
+)
 
 type gui struct {
 	ptr    *C.struct_GWEN_GUI
 	dbPins *C.GWEN_DB_NODE
+}
+
+//export callMeOnGo
+func callMeOnGo(token *C.char, buffer unsafe.Pointer, minLen, maxLen int) int {
+	fmt.Printf("recv c call: %v, %d - %d\n", C.GoString(token), minLen, maxLen)
+	return 1
 }
 
 func newGui(interactive bool) *gui {
@@ -26,6 +47,8 @@ func newGui(interactive bool) *gui {
 	}
 	C.GWEN_Gui_SetCharSet(abGui, C.CString("UTF-8"))
 	C.GWEN_Gui_SetGui(abGui)
+
+	C.GWEN_Gui_SetGetPasswordFn(abGui, (C.GWEN_GUI_GETPASSWORD_FN)(unsafe.Pointer(C.callMeOnGo_cgo)))
 
 	// C.GWEN_Logger_SetLevel(C.CString(C.AQBANKING_LOGDOMAIN), C.GWEN_LoggerLevel_Error)
 	// C.GWEN_Logger_SetLevel(C.CString(C.GWEN_LOGDOMAIN), C.GWEN_LoggerLevel_Error)
