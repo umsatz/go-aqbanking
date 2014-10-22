@@ -6,6 +6,9 @@ package main
 #include <gwenhywfar/cgui.h>
 #include <gwenhywfar/gui.h>
 
+// forward declaration for exported go callback fnc
+int aqbankingGetPasswordFn(const char *, char *, int, int);
+
 // see gwenhywfar/src/gui/gui.h:698 for details about this callback
 int goAqbankingGetPasswordFn_cgo(
     GWEN_GUI *gui,
