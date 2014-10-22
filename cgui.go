@@ -6,7 +6,9 @@ package main
 #include <gwenhywfar/cgui.h>
 #include <gwenhywfar/gui.h>
 
-int callMeOnGo_cgo(GWEN_GUI *gui,
+// see gwenhywfar/src/gui/gui.h:698 for details about this callback
+int goAqbankingGetPasswordFn_cgo(
+    GWEN_GUI *gui,
     uint32_t flags,
     const char *token,
     const char *title,
@@ -15,7 +17,7 @@ int callMeOnGo_cgo(GWEN_GUI *gui,
     int minLen,
     int maxLen,
     uint32_t guiid) {
-  return callMeOnGo(token, buffer, minLen, maxLen);
+  return aqbankingGetPasswordFn(token, buffer, minLen, maxLen);
 }
 */
 import "C"

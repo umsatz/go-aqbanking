@@ -9,7 +9,9 @@ package main
 #include <aqbanking/abgui.h>
 #include <gwenhywfar/gwenhywfar.h>
 
-int callMeOnGo_cgo(GWEN_GUI *gui,
+// forward declaration to allow cgui.go to use our go callback fnc
+int goAqbankingGetPasswordFn_cgo(
+		GWEN_GUI *gui,
 		uint32_t flags,
 		const char *token,
 		const char *title,
@@ -27,15 +29,19 @@ import (
 )
 
 type gui struct {
-	ptr    *C.struct_GWEN_GUI
-	dbPins *C.GWEN_DB_NODE
+	ptr *C.struct_GWEN_GUI
 }
 
-//export callMeOnGo
-func callMeOnGo(token *C.char, buffer unsafe.Pointer, minLen, maxLen int) int {
-	fmt.Printf("recv c call: %v, %d - %d\n", C.GoString(token), minLen, maxLen)
-	return 1
+//export aqbankingGetPasswordFn
+func aqbankingGetPasswordFn(token *C.char, buffer unsafe.Pointer, minLen, maxLen int) int {
+	pin, ok := knownAqbankingPins[C.GoString(token)]
+	if ok {
+		C.memcpy(buffer, unsafe.Pointer(C.CString(pin)), 6)
+	}
+	return 0
 }
+
+var knownAqbankingPins = map[string]string{}
 
 func newGui(interactive bool) *gui {
 	abGui := C.GWEN_Gui_CGui_new()
@@ -48,17 +54,10 @@ func newGui(interactive bool) *gui {
 	C.GWEN_Gui_SetCharSet(abGui, C.CString("UTF-8"))
 	C.GWEN_Gui_SetGui(abGui)
 
-	C.GWEN_Gui_SetGetPasswordFn(abGui, (C.GWEN_GUI_GETPASSWORD_FN)(unsafe.Pointer(C.callMeOnGo_cgo)))
-
-	// C.GWEN_Logger_SetLevel(C.CString(C.AQBANKING_LOGDOMAIN), C.GWEN_LoggerLevel_Error)
-	// C.GWEN_Logger_SetLevel(C.CString(C.GWEN_LOGDOMAIN), C.GWEN_LoggerLevel_Error)
-
-	dbPins := C.GWEN_DB_Group_new(C.CString("pins"))
-	C.GWEN_Gui_CGui_SetPasswordDb(abGui, dbPins, 1)
+	C.GWEN_Gui_SetGetPasswordFn(abGui, (C.GWEN_GUI_GETPASSWORD_FN)(unsafe.Pointer(C.goAqbankingGetPasswordFn_cgo)))
 
 	return &gui{
 		abGui,
-		dbPins,
 	}
 }
 
@@ -71,13 +70,11 @@ func (g *gui) attach(aq *AQBanking) {
 }
 
 // RegisterPin registers a given Pin code with the aqbanking gui.
-// required to allow go-aqbanking to operate non-interactively
-// Note that the pins must be registered prior to requesting accounts or transactions
+// pins can be added at any point in time prior to making a request.
+// Pins are stored in memory only. When the process exits, all pins are forgotten.
 func (ab *AQBanking) RegisterPin(pin Pin) {
-	str := fmt.Sprintf("PIN_%v_%v=%v\n", pin.BankCode(), pin.UserID(), pin.Pin())
-	pinLen := len(str)
-
-	C.GWEN_DB_ReadFromString(ab.gui.dbPins, C.CString(str), C.int(pinLen), C.GWEN_PATH_FLAGS_CREATE_GROUP|C.GWEN_DB_FLAGS_DEFAULT)
+	key := fmt.Sprintf("PIN_%v_%v", pin.BankCode(), pin.UserID())
+	knownAqbankingPins[key] = pin.Pin()
 }
 
 func (g *gui) free() {
