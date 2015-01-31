@@ -21,10 +21,8 @@ func main() {
 	)
 
 	for _, pin := range aqb.LoadPins("pins.json") {
-		aq.RegisterPin(&pin)
+		aq.RegisterPin(pin)
 	}
-
-	user := aqb.User{Id: 0, UserId: "userid", CustomerId: "userid", BankCode: "bankcode", Name: "name of bank", ServerUri: "https://your hbci server url", HbciVersion: 300}
 
 	if err := aq.AddPinTanUser(&user); err != nil {
 		fmt.Printf("unable to add user. %v\n", err)

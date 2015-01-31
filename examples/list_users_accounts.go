@@ -23,7 +23,7 @@ func main() {
 	)
 
 	for _, pin := range aqb.LoadPins("pins.json") {
-		aq.RegisterPin(&pin)
+		aq.RegisterPin(pin)
 	}
 
 	userCollection, err := aq.Users()
@@ -34,7 +34,7 @@ func main() {
 	fmt.Printf("found %d users.\n", len(userCollection.Users))
 
 	for _, user := range userCollection.Users {
-		fmt.Printf("User %d\n", user.Id)
+		fmt.Printf("User %d\n", user.ID)
 	}
 
 	accountCollection, err := aq.Accounts()

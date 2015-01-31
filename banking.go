@@ -1,4 +1,4 @@
-package main
+package aqbanking
 
 import (
 	"fmt"

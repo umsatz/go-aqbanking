@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"log"
 	"time"
+
+	. "github.com/umsatz/go-aqbanking"
 )
 
 /*
@@ -105,7 +107,6 @@ Fee: %2.2f %v
 `, t.Purpose,
 			t.Text,
 			t.Status,
-			t.MandateReference,
 			t.CustomerReference,
 			t.LocalBankCode,
 			t.LocalAccountNumber,

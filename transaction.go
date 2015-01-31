@@ -1,4 +1,4 @@
-package main
+package aqbanking
 
 import (
 	"errors"
@@ -25,7 +25,6 @@ type Transaction struct {
 	Status            string
 	Date              time.Time
 	ValutaDate        time.Time
-	MandateReference  string
 	CustomerReference string
 	Total             float32
 	TotalCurrency     string
@@ -58,7 +57,6 @@ func newTransaction(t *C.AB_TRANSACTION) (Transaction, bool) {
 	transaction.Purpose = (*gwStringList)(C.AB_Transaction_GetPurpose(t)).toString()
 	transaction.Text = C.GoString(C.AB_Transaction_GetTransactionText(t))
 	transaction.Status = C.GoString(C.AB_Transaction_Status_toString(C.AB_Transaction_GetStatus(t)))
-	transaction.MandateReference = C.GoString(C.AB_Transaction_GetMandateReference(t))
 	transaction.CustomerReference = C.GoString(C.AB_Transaction_GetCustomerReference(t))
 	transaction.Date = (*gwTime)(C.AB_Transaction_GetDate(t)).toTime()
 	transaction.ValutaDate = (*gwTime)(C.AB_Transaction_GetValutaDate(t)).toTime()
