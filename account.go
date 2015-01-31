@@ -53,22 +53,20 @@ func (a *Account) FirstUser() User {
 }
 
 func newAccount(a *C.AB_ACCOUNT) Account {
-	account := Account{}
-
-	account.Name = C.GoString(C.AB_Account_GetAccountName(a))
-	account.Owner = C.GoString(C.AB_Account_GetOwnerName(a))
-	account.Currency = C.GoString(C.AB_Account_GetCurrency(a))
-	account.Country = C.GoString(C.AB_Account_GetCountry(a))
-
-	account.AccountNumber = C.GoString(C.AB_Account_GetAccountNumber(a))
-	account.IBAN = C.GoString(C.AB_Account_GetIBAN(a))
-	account.BIC = C.GoString(C.AB_Account_GetBIC(a))
-
-	account.Bank = Bank{
-		Name:     C.GoString(C.AB_Account_GetBankName(a)),
-		BankCode: C.GoString(C.AB_Account_GetBankCode(a)),
+	account := Account{
+		ptr:           a,
+		Name:          C.GoString(C.AB_Account_GetAccountName(a)),
+		Owner:         C.GoString(C.AB_Account_GetOwnerName(a)),
+		Currency:      C.GoString(C.AB_Account_GetCurrency(a)),
+		Country:       C.GoString(C.AB_Account_GetCountry(a)),
+		AccountNumber: C.GoString(C.AB_Account_GetAccountNumber(a)),
+		IBAN:          C.GoString(C.AB_Account_GetIBAN(a)),
+		BIC:           C.GoString(C.AB_Account_GetBIC(a)),
+		Bank: Bank{
+			Name:     C.GoString(C.AB_Account_GetBankName(a)),
+			BankCode: C.GoString(C.AB_Account_GetBankCode(a)),
+		},
 	}
-	account.ptr = a
 
 	return account
 }

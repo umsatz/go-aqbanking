@@ -1,11 +1,5 @@
 package aqbanking
 
-import (
-	"encoding/json"
-	"log"
-	"os"
-)
-
 // Pin is a interface to support pluggable pin loading.
 // The examples read the pin from a pins.json, which
 // is extremely insecure and should never be used in production
@@ -31,27 +25,4 @@ func (p *pin) UserID() string {
 
 func (p *pin) Pin() string {
 	return p.PIN
-}
-
-// LoadPins deserializes every pin specified in the given file, even if they might not
-// contain all required attributes.
-func LoadPins(filename string) []Pin {
-	f, err := os.Open(filename)
-	if err != nil {
-		log.Fatal("%v", err)
-		return nil
-	}
-
-	var _pins []pin
-	if err = json.NewDecoder(f).Decode(&_pins); err != nil {
-		log.Fatal("%v", err)
-		return nil
-	}
-
-	var pins = make([]Pin, len(_pins))
-	for i, pin := range _pins {
-		pins[i] = Pin(&pin)
-	}
-
-	return pins
 }

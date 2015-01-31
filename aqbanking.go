@@ -1,4 +1,4 @@
-// Package aqbanking is a go wrapper around aqbanking version 5.5.1
+// Package aqbanking is a go wrapper around aqbanking version 5.0.24 to 5.5.1
 //
-// http://www.aqbanking.de/
+// Details about aqbanking are available at the official homepage: http://www.aqbanking.de/
 package aqbanking

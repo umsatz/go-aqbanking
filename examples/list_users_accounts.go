@@ -1,11 +1,34 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
+	"os"
 
 	aqb "github.com/umsatz/go-aqbanking"
 )
+
+func loadPins(filename string) []Pin {
+	f, err := os.Open(filename)
+	if err != nil {
+		log.Fatal("%v", err)
+		return nil
+	}
+
+	var _pins []pin
+	if err = json.NewDecoder(f).Decode(&_pins); err != nil {
+		log.Fatal("%v", err)
+		return nil
+	}
+
+	var pins = make([]Pin, len(_pins))
+	for i, pin := range _pins {
+		pins[i] = Pin(&pin)
+	}
+
+	return pins
+}
 
 func main() {
 	aq, err := aqb.DefaultAQBanking()
@@ -22,7 +45,7 @@ func main() {
 		aq.Version.Patchlevel,
 	)
 
-	for _, pin := range aqb.LoadPins("pins.json") {
+	for _, pin := range loadPins("pins.json") {
 		aq.RegisterPin(pin)
 	}
 
