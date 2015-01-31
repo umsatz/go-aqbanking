@@ -49,17 +49,17 @@ func NewAQBanking(name string, dbPath string) (*AQBanking, error) {
 		inst.ptr = C.AB_Banking_new(cName, cPath, 0)
 	}
 
+	inst.gui = newNonInteractiveGui()
+	inst.gui.attach(inst)
+
 	if err := C.AB_Banking_Init(inst.ptr); err != 0 {
 		return nil, fmt.Errorf("unable to initialized aqbanking: %d", err)
 	}
 	if err := C.AB_Banking_OnlineInit(inst.ptr); err != 0 {
-		return nil, fmt.Errorf("unable to initialized aqbanking: %d", err)
+		return nil, fmt.Errorf("unable to initialized aqbanking: %q", err)
 	}
 
 	inst.loadVersion()
-
-	inst.gui = newNonInteractiveGui()
-	inst.gui.attach(inst)
 
 	return inst, nil
 }
