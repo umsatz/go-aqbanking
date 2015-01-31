@@ -9,8 +9,8 @@ import (
 /*
 #cgo LDFLAGS: -laqbanking
 #cgo LDFLAGS: -lgwenhywfar
-#cgo darwin CFLAGS: -I/usr/local/include/gwenhywfar4
-#cgo darwin CFLAGS: -I/usr/local/include/aqbanking5
+#cgo CFLAGS: -I/usr/local/include/gwenhywfar4
+#cgo CFLAGS: -I/usr/local/include/aqbanking5
 #include <aqbanking/jobgettransactions.h>
 #include <aqbanking/banking.h>
 #include <aqbanking/job.h>

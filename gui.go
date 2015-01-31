@@ -3,8 +3,8 @@ package aqbanking
 /*
 #cgo LDFLAGS: -laqbanking
 #cgo LDFLAGS: -lgwenhywfar
-#cgo darwin CFLAGS: -I/usr/local/include/gwenhywfar4
-#cgo darwin CFLAGS: -I/usr/local/include/aqbanking5
+#cgo CFLAGS: -I/usr/local/include/gwenhywfar4
+#cgo CFLAGS: -I/usr/local/include/aqbanking5
 #include <gwenhywfar/cgui.h>
 #include <aqbanking/abgui.h>
 #include <gwenhywfar/gwenhywfar.h>

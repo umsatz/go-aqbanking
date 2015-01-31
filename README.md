@@ -24,4 +24,3 @@ go run !(*_test).go
     - Standing Orders
     - Foreign Transfers
     - Investment Transfers
-- Tests
