@@ -9,6 +9,24 @@ import (
 	aqb "github.com/umsatz/go-aqbanking"
 )
 
+type pin struct {
+	Blz string `json:"blz"`
+	UID string `json:"uid"`
+	PIN string `json:"pin"`
+}
+
+func (p *pin) BankCode() string {
+	return p.Blz
+}
+
+func (p *pin) UserID() string {
+	return p.UID
+}
+
+func (p *pin) Pin() string {
+	return p.PIN
+}
+
 func loadPins(filename string) []Pin {
 	f, err := os.Open(filename)
 	if err != nil {

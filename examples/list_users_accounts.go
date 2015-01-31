@@ -30,6 +30,24 @@ func loadPins(filename string) []Pin {
 	return pins
 }
 
+type pin struct {
+	Blz string `json:"blz"`
+	UID string `json:"uid"`
+	PIN string `json:"pin"`
+}
+
+func (p *pin) BankCode() string {
+	return p.Blz
+}
+
+func (p *pin) UserID() string {
+	return p.UID
+}
+
+func (p *pin) Pin() string {
+	return p.PIN
+}
+
 func main() {
 	aq, err := aqb.DefaultAQBanking()
 	// alternativly, customize the aqbanking path:
