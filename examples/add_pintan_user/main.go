@@ -27,7 +27,7 @@ func (p *pin) Pin() string {
 	return p.PIN
 }
 
-func loadPins(filename string) []Pin {
+func loadPins(filename string) []aqb.Pin {
 	f, err := os.Open(filename)
 	if err != nil {
 		log.Fatal("%v", err)
@@ -40,9 +40,9 @@ func loadPins(filename string) []Pin {
 		return nil
 	}
 
-	var pins = make([]Pin, len(_pins))
-	for i, pin := range _pins {
-		pins[i] = Pin(&pin)
+	var pins = make([]aqb.Pin, len(_pins))
+	for i, p := range _pins {
+		pins[i] = aqb.Pin(&p)
 	}
 
 	return pins
@@ -65,6 +65,7 @@ func main() {
 		aq.RegisterPin(pin)
 	}
 
+	var user aqb.User
 	if err := aq.AddPinTanUser(&user); err != nil {
 		fmt.Printf("unable to add user. %v\n", err)
 	} else {

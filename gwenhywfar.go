@@ -2,7 +2,8 @@ package aqbanking
 
 /*
 #cgo LDFLAGS: -lgwenhywfar
-#cgo CFLAGS: -I/usr/local/include/gwenhywfar4
+#cgo darwin CFLAGS: -I/usr/local/include/gwenhywfar4
+#cgo linux CFLAGS: -I/usr/include/gwenhywfar4
 #include <gwenhywfar/stringlist.h>
 #include <gwenhywfar/gwentime.h>
 */

@@ -1,6 +1,8 @@
 go-aqbanking
 ============
 
+[![Build Status](https://travis-ci.org/umsatz/go-aqbanking.svg)](https://travis-ci.org/umsatz/go-aqbanking)
+
 golang wrapper for aqbanking C library
 
 go run !(*_test).go
