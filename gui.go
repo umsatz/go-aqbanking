@@ -38,7 +38,7 @@ type gui struct {
 func aqbankingGetPasswordFn(token *C.char, buffer unsafe.Pointer, minLen, maxLen int) int {
 	pin, ok := knownAqbankingPins[C.GoString(token)]
 	if ok {
-		C.memcpy(buffer, unsafe.Pointer(C.CString(pin)), 6)
+		C.memcpy(buffer, unsafe.Pointer(C.CString(pin)), C.size_t(len(pin)))
 	}
 	return 0
 }
