@@ -1,0 +1,11 @@
+version: 2
+jobs:
+  build:
+    working_directory: /go/src/github.com/umsatz/go-aqbanking
+    docker:
+      - image: circleci/golang:1.10-stretch
+    steps:
+      - checkout
+      - run: sudo apt-get install -qq libaqbanking-dev
+      - run: go get -v -t -d ./...
+      - run: go test -v ./...
