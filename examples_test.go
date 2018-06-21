@@ -54,7 +54,7 @@ func ExampleAQBanking_listAccounts() {
 
 	accountCollection, err := aq.Accounts()
 	if err != nil {
-		log.Fatal("unable to list accounts: %v", err)
+		log.Fatalf("unable to list accounts: %v", err)
 	}
 
 	for _, account := range accountCollection.Accounts {
@@ -71,7 +71,7 @@ func ExampleAQBanking_listUsers() {
 
 	userCollection, err := aq.Users()
 	if err != nil {
-		log.Fatal("unable to list users: %v", err)
+		log.Fatalf("unable to list users: %v", err)
 	}
 	defer userCollection.Free()
 
