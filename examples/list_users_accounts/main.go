@@ -12,13 +12,13 @@ import (
 func loadPins(filename string) []aqb.Pin {
 	f, err := os.Open(filename)
 	if err != nil {
-		log.Fatal("%v", err)
+		log.Fatal(err)
 		return nil
 	}
 
 	var _pins []pin
 	if err = json.NewDecoder(f).Decode(&_pins); err != nil {
-		log.Fatal("%v", err)
+		log.Fatal(err)
 		return nil
 	}
 
@@ -53,7 +53,7 @@ func main() {
 	// alternativly, customize the aqbanking path:
 	// aq, err := aq.NewAQBanking("custom", "./tmp")
 	if err != nil {
-		log.Fatal("unable to init aqbanking: %v", err)
+		log.Fatalf("unable to init aqbanking: %v", err)
 	}
 	defer aq.Free()
 
@@ -69,7 +69,7 @@ func main() {
 
 	userCollection, err := aq.Users()
 	if err != nil {
-		log.Fatal("unable to list users: %v", err)
+		log.Fatalf("unable to list users: %v", err)
 	}
 	defer userCollection.Free()
 	fmt.Printf("found %d users.\n", len(userCollection.Users))
@@ -80,7 +80,7 @@ func main() {
 
 	accountCollection, err := aq.Accounts()
 	if err != nil {
-		log.Fatal("unable to list accounts: %v", err)
+		log.Fatalf("unable to list accounts: %v", err)
 	}
 
 	fmt.Printf("found %d accounts.\n", len(accountCollection.Accounts))

@@ -13,13 +13,13 @@ import (
 func loadPins(filename string) []Pin {
 	f, err := os.Open(filename)
 	if err != nil {
-		log.Fatal("%v", err)
+		log.Fatal(err)
 		return nil
 	}
 
 	var _pins []pin
 	if err = json.NewDecoder(f).Decode(&_pins); err != nil {
-		log.Fatal("%v", err)
+		log.Fatal(err)
 		return nil
 	}
 
@@ -52,7 +52,7 @@ func (p *pin) Pin() string {
 func listAccounts(ab *AQBanking) {
 	accountCollection, err := ab.Accounts()
 	if err != nil {
-		log.Fatal("unable to list accounts: %v", err)
+		log.Fatalf("unable to list accounts: %v", err)
 	}
 
 	fmt.Println("%%\nAccounts")
@@ -84,7 +84,7 @@ BIC: %v
 func listUsers(ab *AQBanking) {
 	userCollection, err := ab.Users()
 	if err != nil {
-		log.Fatal("unable to list users: %v", err)
+		log.Fatalf("unable to list users: %v", err)
 	}
 	defer userCollection.Free()
 
@@ -119,7 +119,6 @@ func listTransactionsFor(ab *AQBanking, account *Account) {
 ## %v
 '%v'
 Status: %v
-MandateReference: %v
 CustomerReference: %v
 LocalBankCode: %v
 LocalAccountNumber: %v
@@ -160,7 +159,7 @@ Fee: %2.2f %v
 func listTransactions(ab *AQBanking) {
 	accountList, err := ab.Accounts()
 	if err != nil {
-		log.Fatal("unable to list accounts: %v", err)
+		log.Fatalf("unable to list accounts: %v", err)
 	}
 
 	for _, account := range accountList.Accounts {
@@ -171,7 +170,7 @@ func listTransactions(ab *AQBanking) {
 func main() {
 	aq, err := NewAQBanking("custom", "./tmp")
 	if err != nil {
-		log.Fatal("unable to init aqbanking: %v", err)
+		log.Fatalf("unable to init aqbanking: %v", err)
 	}
 	defer aq.Free()
 

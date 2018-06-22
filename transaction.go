@@ -93,7 +93,7 @@ func (ab *AQBanking) Transactions(acc *Account, from *time.Time, to *time.Time) 
 	abJob := C.AB_JobGetTransactions_new(acc.ptr)
 
 	if abJob == nil {
-		return nil, errors.New("Unable to load transactions.")
+		return nil, errors.New("Unable to load transactions")
 	}
 
 	if err := C.AB_Job_CheckAvailability(abJob); err != 0 {

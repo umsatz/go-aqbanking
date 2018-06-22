@@ -164,7 +164,7 @@ func (u *User) Remove(aq *AQBanking) error {
 	}
 
 	if err := C.AB_Banking_DeleteUser(aq.ptr, u.ptr); err != 0 {
-		return fmt.Errorf("unable to delete user: %d\n", err)
+		return fmt.Errorf("unable to delete user: %d", err)
 	}
 	return nil
 }
@@ -225,7 +225,7 @@ func (ab *AQBanking) Users() (*UserCollection, error) {
 
 	abIterator := C.AB_User_List2_First(abUserList)
 	if abIterator == nil {
-		return nil, errors.New("Unable to get user iterator.")
+		return nil, errors.New("Unable to get user iterator")
 	}
 
 	var abUser *C.AB_USER

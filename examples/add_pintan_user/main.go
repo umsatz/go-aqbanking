@@ -30,13 +30,13 @@ func (p *pin) Pin() string {
 func loadPins(filename string) []aqb.Pin {
 	f, err := os.Open(filename)
 	if err != nil {
-		log.Fatal("%v", err)
+		log.Fatal(err)
 		return nil
 	}
 
 	var _pins []pin
 	if err = json.NewDecoder(f).Decode(&_pins); err != nil {
-		log.Fatal("%v", err)
+		log.Fatal(err)
 		return nil
 	}
 
@@ -51,7 +51,7 @@ func loadPins(filename string) []aqb.Pin {
 func main() {
 	aq, err := aqb.DefaultAQBanking()
 	if err != nil {
-		log.Fatal("unable to init aqbanking: %v", err)
+		log.Fatalf("unable to init aqbanking: %v", err)
 	}
 	defer aq.Free()
 
@@ -74,7 +74,7 @@ func main() {
 
 	accountCollection, err := aq.Accounts()
 	if err != nil {
-		log.Fatal("unable to list accounts: %v", err)
+		log.Fatalf("unable to list accounts: %v", err)
 	}
 	fmt.Printf("found %d accounts.\n", len(accountCollection.Accounts))
 }

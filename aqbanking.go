@@ -81,7 +81,7 @@ func (ab *AQBanking) loadVersion() {
 // Free frees all underlying aqbanking pointers
 func (ab *AQBanking) Free() error {
 	if err := C.AB_Banking_OnlineFini(ab.ptr); err != 0 {
-		return fmt.Errorf("unable to free aqbanking online: %d\n", err)
+		return fmt.Errorf("unable to free aqbanking online: %d", err)
 	}
 
 	ab.gui.free()

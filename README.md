@@ -1,7 +1,7 @@
 go-aqbanking
 ============
 
-[![Build Status](https://travis-ci.org/umsatz/go-aqbanking.svg)](https://travis-ci.org/umsatz/go-aqbanking)
+[![CircleCI](https://circleci.com/gh/umsatz/go-aqbanking/tree/master.svg?style=shield)](https://circleci.com/gh/umsatz/go-aqbanking/tree/master)
 
 golang wrapper for aqbanking C library
 
