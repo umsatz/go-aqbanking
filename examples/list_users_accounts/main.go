@@ -1,52 +1,12 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
 	"log"
-	"os"
 
 	aqb "github.com/umsatz/go-aqbanking"
+	"github.com/umsatz/go-aqbanking/examples"
 )
-
-func loadPins(filename string) []aqb.Pin {
-	f, err := os.Open(filename)
-	if err != nil {
-		log.Fatal(err)
-		return nil
-	}
-
-	var _pins []pin
-	if err = json.NewDecoder(f).Decode(&_pins); err != nil {
-		log.Fatal(err)
-		return nil
-	}
-
-	var pins = make([]aqb.Pin, len(_pins))
-	for i, p := range _pins {
-		pins[i] = aqb.Pin(&p)
-	}
-
-	return pins
-}
-
-type pin struct {
-	Blz string `json:"blz"`
-	UID string `json:"uid"`
-	PIN string `json:"pin"`
-}
-
-func (p *pin) BankCode() string {
-	return p.Blz
-}
-
-func (p *pin) UserID() string {
-	return p.UID
-}
-
-func (p *pin) Pin() string {
-	return p.PIN
-}
 
 func main() {
 	aq, err := aqb.DefaultAQBanking()
@@ -63,7 +23,7 @@ func main() {
 		aq.Version.Patchlevel,
 	)
 
-	for _, pin := range loadPins("pins.json") {
+	for _, pin := range examples.LoadPins("pins.json") {
 		aq.RegisterPin(pin)
 	}
 
