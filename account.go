@@ -53,7 +53,7 @@ func (a *Account) FirstUser() User {
 }
 
 func newAccount(a *C.AB_ACCOUNT) Account {
-	account := Account{
+	return Account{
 		ptr:           a,
 		Name:          C.GoString(C.AB_Account_GetAccountName(a)),
 		Owner:         C.GoString(C.AB_Account_GetOwnerName(a)),
@@ -67,8 +67,6 @@ func newAccount(a *C.AB_ACCOUNT) Account {
 			BankCode: C.GoString(C.AB_Account_GetBankCode(a)),
 		},
 	}
-
-	return account
 }
 
 // Remove an Account from aqbanking files
