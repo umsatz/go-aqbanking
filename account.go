@@ -45,9 +45,7 @@ func (a *Account) Free() {
 
 // AccountCollection wraps working with multiple accounts, e.g. when searching by banking code.
 // Necessary to support proper freeing of the underlying aqbanking collection pointer
-type AccountCollection struct {
-	Accounts []Account
-}
+type AccountCollection []Account
 
 // FirstUser returns the first user associated with a given account
 func (a *Account) FirstUser() User {
@@ -82,19 +80,18 @@ func (a *Account) Remove(aq *AQBanking) error {
 }
 
 // AccountsFor returns all accounts associated with a given user
-func (ab *AQBanking) AccountsFor(u *User) (*AccountCollection, error) {
+func (ab *AQBanking) AccountsFor(u *User) (AccountCollection, error) {
 	allAccountCollection, err := ab.Accounts()
 	if err != nil {
 		return nil, err
 	}
 
-	list := &AccountCollection{}
-	list.Accounts = make([]Account, 0)
+	list := AccountCollection{}
 
-	for _, account := range allAccountCollection.Accounts {
+	for _, account := range allAccountCollection {
 		accUser := account.FirstUser()
 		if accUser.ID == u.ID {
-			list.Accounts = append(list.Accounts, account)
+			list = append(list, account)
 		}
 	}
 
@@ -102,26 +99,23 @@ func (ab *AQBanking) AccountsFor(u *User) (*AccountCollection, error) {
 }
 
 // Accounts returns all accounts registered with the given AQBanking instance
-func (ab *AQBanking) Accounts() (*AccountCollection, error) {
+func (ab *AQBanking) Accounts() (AccountCollection, error) {
 	abAccountList := C.AB_Banking_GetAccounts(ab.ptr)
 	if abAccountList == nil {
 		// no accounts available
-		return &AccountCollection{}, nil
+		return nil, nil
 	}
 
-	list := &AccountCollection{}
-	list.Accounts = make([]Account, C.AB_Account_List2_GetSize(abAccountList))
+	list := make(AccountCollection, C.AB_Account_List2_GetSize(abAccountList))
 
 	abIterator := C.AB_Account_List2_First(abAccountList)
 	if abIterator == nil {
 		return nil, errors.New("Unable to get account iterator")
 	}
 
-	var abAccount *C.AB_ACCOUNT
-	abAccount = C.AB_Account_List2Iterator_Data(abIterator)
-
+	abAccount := C.AB_Account_List2Iterator_Data(abIterator)
 	for i := 0; abAccount != nil; i++ {
-		list.Accounts[i] = newAccount(abAccount)
+		list[i] = newAccount(abAccount)
 
 		abAccount = C.AB_Account_List2Iterator_Next(abIterator)
 	}

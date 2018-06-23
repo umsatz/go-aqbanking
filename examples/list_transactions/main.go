@@ -38,7 +38,7 @@ func listAccounts(ab *aqb.AQBanking) {
 	}
 
 	fmt.Println("%%\nAccounts")
-	for _, account := range accountCollection.Accounts {
+	for _, account := range accountCollection {
 		fmt.Printf(`
 ## %v
 Owner: %v
@@ -139,12 +139,12 @@ Fee: %2.2f %v
 }
 
 func listTransactions(ab *aqb.AQBanking) {
-	accountList, err := ab.Accounts()
+	accounts, err := ab.Accounts()
 	if err != nil {
 		log.Fatalf("unable to list accounts: %v", err)
 	}
 
-	for _, account := range accountList.Accounts {
+	for _, account := range accounts {
 		listTransactionsFor(ab, &account)
 	}
 }

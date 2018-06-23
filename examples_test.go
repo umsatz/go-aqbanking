@@ -57,7 +57,7 @@ func ExampleAQBanking_listAccounts() {
 		log.Fatalf("unable to list accounts: %v", err)
 	}
 
-	for _, account := range accountCollection.Accounts {
+	for _, account := range accountCollection {
 		fmt.Printf("%v", account)
 	}
 }

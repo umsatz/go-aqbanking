@@ -43,9 +43,9 @@ func main() {
 		log.Fatalf("unable to list accounts: %v", err)
 	}
 
-	fmt.Printf("found %d accounts.\n", len(accountCollection.Accounts))
+	fmt.Printf("found %d accounts.\n", len(accountCollection))
 
-	for _, account := range accountCollection.Accounts {
+	for _, account := range accountCollection {
 		fmt.Printf("Account %v\n", account.Name)
 
 		transactions, _ := aq.Transactions(&account, nil, nil)

@@ -36,5 +36,5 @@ func main() {
 	if err != nil {
 		log.Fatalf("unable to list accounts: %v", err)
 	}
-	fmt.Printf("found %d accounts.\n", len(accountCollection.Accounts))
+	fmt.Printf("found %d accounts.\n", len(accountCollection))
 }
