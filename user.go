@@ -152,12 +152,12 @@ func (ab *AQBanking) AddPinTanUser(user *User) error {
 
 // Remove removes a user from the given aqbanking database
 func (u *User) Remove(aq *AQBanking) error {
-	accountCollection, err := aq.AccountsFor(u)
+	accounts, err := aq.AccountsFor(u)
 	if err != nil {
 		return err
 	}
 
-	for _, account := range accountCollection.Accounts {
+	for _, account := range accounts {
 		if err := account.Remove(aq); err != nil {
 			return err
 		}

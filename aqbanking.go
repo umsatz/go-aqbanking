@@ -42,15 +42,13 @@ func NewAQBanking(name string, dbPath string) (*AQBanking, error) {
 	cName := C.CString(name)
 	defer C.free(unsafe.Pointer(cName))
 
-	if dbPath == "" {
-		inst.ptr = C.AB_Banking_new(cName, nil, 0)
-	} else {
+	var cPath *C.char
+	if dbPath != "" {
 		cPath := C.CString(dbPath)
 		defer C.free(unsafe.Pointer(cPath))
-
-		inst.ptr = C.AB_Banking_new(cName, cPath, 0)
 	}
 
+	inst.ptr = C.AB_Banking_new(cName, cPath, 0)
 	inst.gui = newNonInteractiveGui()
 	inst.gui.attach(inst)
 
