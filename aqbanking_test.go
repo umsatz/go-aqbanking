@@ -1,6 +1,7 @@
 package aqbanking
 
 import (
+	"io/ioutil"
 	"os"
 	"testing"
 )
@@ -14,9 +15,14 @@ func TestDefaultAQBankingInstance(t *testing.T) {
 }
 
 func TestNewAQBankingInstance(t *testing.T) {
-	defer os.RemoveAll("./tmp")
+	tmp, err := ioutil.TempDir("", "aqbanking")
+	if err != nil {
+		t.Errorf("unable to create temporary dir: %v", err)
+		return
+	}
+	defer os.RemoveAll(tmp)
 
-	aq, err := NewAQBanking("example", "./tmp")
+	aq, err := NewAQBanking("example", tmp)
 
 	if err != nil {
 		t.Fatalf("unable to create custom aqbanking instance")
