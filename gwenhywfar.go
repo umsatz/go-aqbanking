@@ -12,14 +12,14 @@ import "time"
 
 type gwStringList C.GWEN_STRINGLIST
 
-func (list *gwStringList) toString() string {
-	str := ""
+func (list *gwStringList) toSlice() []string {
+	var s []string
 	size := int(C.GWEN_StringList_Count((*C.GWEN_STRINGLIST)(list)))
 	for i := 0; i < size; i++ {
-		part := C.GoString(C.GWEN_StringList_StringAt((*C.GWEN_STRINGLIST)(list), C.int(i)))
-		str += part
+		l := C.GoString(C.GWEN_StringList_StringAt((*C.GWEN_STRINGLIST)(list), C.int(i)))
+		s = append(s, l)
 	}
-	return str
+	return s
 }
 
 type gwTime C.GWEN_TIME

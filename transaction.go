@@ -3,6 +3,7 @@ package aqbanking
 import (
 	"errors"
 	"fmt"
+	"strings"
 	"time"
 )
 
@@ -23,6 +24,7 @@ import "C"
 // Transaction represents an aqbanking transaction
 type Transaction struct {
 	Purpose           string
+	PurposeList       []string
 	Text              string
 	Status            string
 	Date              time.Time
@@ -48,6 +50,7 @@ type Transaction struct {
 	RemoteIBAN          string
 	RemoteBIC           string
 	RemoteName          string
+	RemoteNameList      []string
 }
 
 func newTransaction(t *C.AB_TRANSACTION) *Transaction {
@@ -58,7 +61,7 @@ func newTransaction(t *C.AB_TRANSACTION) *Transaction {
 	}
 
 	transaction := Transaction{
-		Purpose:           (*gwStringList)(C.AB_Transaction_GetPurpose(t)).toString(),
+		PurposeList:       (*gwStringList)(C.AB_Transaction_GetPurpose(t)).toSlice(),
 		Text:              C.GoString(C.AB_Transaction_GetTransactionText(t)),
 		Status:            C.GoString(C.AB_Transaction_Status_toString(C.AB_Transaction_GetStatus(t))),
 		CustomerReference: C.GoString(C.AB_Transaction_GetCustomerReference(t)),
@@ -81,8 +84,11 @@ func newTransaction(t *C.AB_TRANSACTION) *Transaction {
 		RemoteBIC:           C.GoString(C.AB_Transaction_GetRemoteBic(t)),
 		RemoteBankCode:      C.GoString(C.AB_Transaction_GetRemoteBankCode(t)),
 		RemoteAccountNumber: C.GoString(C.AB_Transaction_GetRemoteAccountNumber(t)),
-		RemoteName:          (*gwStringList)(C.AB_Transaction_GetRemoteName(t)).toString(),
+		RemoteNameList:      (*gwStringList)(C.AB_Transaction_GetRemoteName(t)).toSlice(),
 	}
+
+	transaction.Purpose = strings.Join(transaction.PurposeList, "\n")
+	transaction.RemoteName = strings.Join(transaction.RemoteNameList, "\n")
 
 	if fees := C.AB_Transaction_GetFees(t); fees != nil {
 		transaction.Fee = float32(C.AB_Value_GetValueAsDouble(fees))
