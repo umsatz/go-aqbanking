@@ -15,17 +15,36 @@ func TestDefaultAQBankingInstance(t *testing.T) {
 }
 
 func TestNewAQBankingInstance(t *testing.T) {
-	tmp, err := ioutil.TempDir("", "aqbanking")
-	if err != nil {
-		t.Errorf("unable to create temporary dir: %v", err)
+	aq, freeAQ := newAQBankingTestInstance(t)
+	if aq == nil {
 		return
 	}
-	defer os.RemoveAll(tmp)
+	freeAQ()
+}
 
-	aq, err := NewAQBanking("example", tmp)
-
+// Creates a new AQBanking with a temporary dir.
+// Caller must call the returned free function for freeing resources.
+func newAQBankingTestInstance(t *testing.T) (aq *AQBanking, free func()) {
+	tmp, err := ioutil.TempDir("", "aqbanking")
 	if err != nil {
-		t.Fatalf("unable to create custom aqbanking instance")
+		t.Fatalf("unable to create temporary dir: %v", err)
+		return
 	}
-	aq.Free()
+
+	aq, err = NewAQBanking("temporary", tmp)
+	if err != nil {
+		os.RemoveAll(tmp)
+		t.Fatalf("unable to create aqbanking instance: %v", err)
+		return
+	}
+
+	free = func() {
+		os.RemoveAll(tmp)
+		err = aq.Free()
+		if err != nil {
+			t.Fatalf("unable to free aqbanking instance: %v", err)
+		}
+	}
+
+	return
 }
