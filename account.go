@@ -2,7 +2,6 @@ package aqbanking
 
 import (
 	"errors"
-	"fmt"
 )
 
 /*
@@ -72,7 +71,7 @@ func newAccount(a *C.AB_ACCOUNT) Account {
 // Remove an Account from aqbanking files
 func (a *Account) Remove(aq *AQBanking) error {
 	if err := C.AB_Banking_DeleteAccount(aq.ptr, a.ptr); err != 0 {
-		return fmt.Errorf("unable to delete account: %d", err)
+		return newError("unable to delete account", err)
 	}
 	return nil
 }

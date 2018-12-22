@@ -164,7 +164,7 @@ func (u *User) Remove(aq *AQBanking) error {
 	}
 
 	if err := C.AB_Banking_DeleteUser(aq.ptr, u.ptr); err != 0 {
-		return fmt.Errorf("unable to delete user: %d", err)
+		return newError("unable to delete user", err)
 	}
 	return nil
 }
@@ -175,7 +175,7 @@ func (u *User) FetchAccounts(aq *AQBanking) error {
 
 	pro := C.AB_Banking_GetProvider(aq.ptr, C.CString("aqhbci"))
 	if err := C.AH_Provider_GetAccounts(pro, u.ptr, ctx, 1, 0, 1); err != 0 {
-		return fmt.Errorf("Error getting accounts (%d)", err)
+		return newError("unable to get accounts", err)
 	}
 
 	C.AB_ImExporterContext_free(ctx)
