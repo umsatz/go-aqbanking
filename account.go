@@ -2,7 +2,6 @@ package aqbanking
 
 import (
 	"errors"
-	"fmt"
 )
 
 /*
@@ -72,7 +71,7 @@ func newAccount(a *C.AB_ACCOUNT) Account {
 // Remove an Account from aqbanking files
 func (a *Account) Remove(aq *AQBanking) error {
 	if err := C.AB_Banking_DeleteAccount(aq.ptr, a.ptr); err != 0 {
-		return fmt.Errorf("unable to delete account: %d", err)
+		return newError("unable to delete account", err)
 	}
 	return nil
 }
@@ -108,7 +107,7 @@ func (ab *AQBanking) Accounts() (AccountCollection, error) {
 
 	abIterator := C.AB_Account_List2_First(abAccountList)
 	if abIterator == nil {
-		return nil, errors.New("Unable to get account iterator")
+		return nil, errors.New("unable to get account iterator")
 	}
 
 	abAccount := C.AB_Account_List2Iterator_Data(abIterator)

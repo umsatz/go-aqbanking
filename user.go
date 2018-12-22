@@ -164,7 +164,7 @@ func (u *User) Remove(aq *AQBanking) error {
 	}
 
 	if err := C.AB_Banking_DeleteUser(aq.ptr, u.ptr); err != 0 {
-		return fmt.Errorf("unable to delete user: %d", err)
+		return newError("unable to delete user", err)
 	}
 	return nil
 }
@@ -175,7 +175,7 @@ func (u *User) FetchAccounts(aq *AQBanking) error {
 
 	pro := C.AB_Banking_GetProvider(aq.ptr, C.CString("aqhbci"))
 	if err := C.AH_Provider_GetAccounts(pro, u.ptr, ctx, 1, 0, 1); err != 0 {
-		return fmt.Errorf("Error getting accounts (%d)", err)
+		return newError("unable to get accounts", err)
 	}
 
 	C.AB_ImExporterContext_free(ctx)
@@ -183,13 +183,13 @@ func (u *User) FetchAccounts(aq *AQBanking) error {
 }
 
 func newUser(ptr *C.AB_USER) User {
-	user := User{}
-	user.ID = int(C.AB_User_GetUniqueId(ptr))
-
-	user.UserID = C.GoString(C.AB_User_GetUserId(ptr))
-	user.CustomerID = C.GoString(C.AB_User_GetCustomerId(ptr))
-	user.Name = C.GoString(C.AB_User_GetUserName(ptr))
-	user.BankCode = C.GoString(C.AB_User_GetBankCode(ptr))
+	user := User{
+		ID:         int(C.AB_User_GetUniqueId(ptr)),
+		UserID:     C.GoString(C.AB_User_GetUserId(ptr)),
+		CustomerID: C.GoString(C.AB_User_GetCustomerId(ptr)),
+		Name:       C.GoString(C.AB_User_GetUserName(ptr)),
+		BankCode:   C.GoString(C.AB_User_GetBankCode(ptr)),
+	}
 
 	url := C.AH_User_GetServerUrl(ptr)
 	if url != nil {
@@ -219,13 +219,14 @@ func (ab *AQBanking) Users() (*UserCollection, error) {
 		return &UserCollection{}, nil
 	}
 
-	collection := &UserCollection{}
-	collection.Users = make([]User, C.AB_User_List2_GetSize(abUserList))
-	collection.ptr = abUserList
+	collection := &UserCollection{
+		Users: make([]User, C.AB_User_List2_GetSize(abUserList)),
+		ptr:   abUserList,
+	}
 
 	abIterator := C.AB_User_List2_First(abUserList)
 	if abIterator == nil {
-		return nil, errors.New("Unable to get user iterator")
+		return nil, errors.New("unable to get user iterator")
 	}
 
 	var abUser *C.AB_USER

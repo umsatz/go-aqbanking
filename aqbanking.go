@@ -4,7 +4,6 @@
 package aqbanking
 
 import (
-	"fmt"
 	"unsafe"
 )
 
@@ -53,10 +52,10 @@ func NewAQBanking(name string, dbPath string) (*AQBanking, error) {
 	inst.gui.attach(inst)
 
 	if err := C.AB_Banking_Init(inst.ptr); err != 0 {
-		return nil, fmt.Errorf("unable to initialized aqbanking: %d", err)
+		return nil, newError("unable to initialize aqbanking", err)
 	}
 	if err := C.AB_Banking_OnlineInit(inst.ptr); err != 0 {
-		return nil, fmt.Errorf("unable to initialized aqbanking: %q", err)
+		return nil, newError("unable to initialize aqbanking", err)
 	}
 
 	inst.loadVersion()
@@ -79,7 +78,7 @@ func (ab *AQBanking) loadVersion() {
 // Free frees all underlying aqbanking pointers
 func (ab *AQBanking) Free() error {
 	if err := C.AB_Banking_OnlineFini(ab.ptr); err != 0 {
-		return fmt.Errorf("unable to free aqbanking online: %d", err)
+		return newError("unable to free aqbanking online", err)
 	}
 
 	ab.gui.free()
