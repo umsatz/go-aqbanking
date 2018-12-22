@@ -183,13 +183,13 @@ func (u *User) FetchAccounts(aq *AQBanking) error {
 }
 
 func newUser(ptr *C.AB_USER) User {
-	user := User{}
-	user.ID = int(C.AB_User_GetUniqueId(ptr))
-
-	user.UserID = C.GoString(C.AB_User_GetUserId(ptr))
-	user.CustomerID = C.GoString(C.AB_User_GetCustomerId(ptr))
-	user.Name = C.GoString(C.AB_User_GetUserName(ptr))
-	user.BankCode = C.GoString(C.AB_User_GetBankCode(ptr))
+	user := User{
+		ID:         int(C.AB_User_GetUniqueId(ptr)),
+		UserID:     C.GoString(C.AB_User_GetUserId(ptr)),
+		CustomerID: C.GoString(C.AB_User_GetCustomerId(ptr)),
+		Name:       C.GoString(C.AB_User_GetUserName(ptr)),
+		BankCode:   C.GoString(C.AB_User_GetBankCode(ptr)),
+	}
 
 	url := C.AH_User_GetServerUrl(ptr)
 	if url != nil {
@@ -219,9 +219,10 @@ func (ab *AQBanking) Users() (*UserCollection, error) {
 		return &UserCollection{}, nil
 	}
 
-	collection := &UserCollection{}
-	collection.Users = make([]User, C.AB_User_List2_GetSize(abUserList))
-	collection.ptr = abUserList
+	collection := &UserCollection{
+		Users: make([]User, C.AB_User_List2_GetSize(abUserList)),
+		ptr:   abUserList,
+	}
 
 	abIterator := C.AB_User_List2_First(abUserList)
 	if abIterator == nil {
