@@ -2,24 +2,15 @@ package aqbanking
 
 import (
 	"fmt"
-	"io/ioutil"
-	"os"
 	"testing"
 )
 
 func TestRemoveUser(t *testing.T) {
-	tmp, err := ioutil.TempDir("", "aqbanking")
-	if err != nil {
-		t.Errorf("unable to create temporary dir: %v", err)
+	aq, freeAQ := newAQBankingTestInstance(t)
+	if aq == nil {
 		return
 	}
-	defer os.RemoveAll(tmp)
-
-	aq, err := NewAQBanking("user tests", tmp)
-	if err != nil {
-		t.Fatalf("unable to create aqbanking instance: %v", err)
-	}
-	defer aq.Free()
+	defer freeAQ()
 
 	user := User{
 		-1,
@@ -48,18 +39,11 @@ func TestRemoveUser(t *testing.T) {
 }
 
 func TestAddUserAndListUsers(t *testing.T) {
-	tmp, err := ioutil.TempDir("", "aqbanking")
-	if err != nil {
-		t.Errorf("unable to create temporary dir: %v", err)
+	aq, freeAQ := newAQBankingTestInstance(t)
+	if aq == nil {
 		return
 	}
-	defer os.RemoveAll(tmp)
-
-	aq, err := NewAQBanking("user tests", tmp)
-	if err != nil {
-		t.Fatalf("unable to create aqbanking instance: %v", err)
-	}
-	defer aq.Free()
+	defer freeAQ()
 
 	user := User{
 		-1,
