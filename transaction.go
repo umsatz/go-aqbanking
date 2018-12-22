@@ -105,7 +105,7 @@ func (ab *AQBanking) Transactions(acc *Account, from *time.Time, to *time.Time) 
 	defer C.AB_Job_free(abJob)
 
 	if abJob == nil {
-		return nil, errors.New("Unable to load transactions")
+		return nil, errors.New("unable to load transactions")
 	}
 
 	if err := C.AB_Job_CheckAvailability(abJob); err != 0 {
@@ -127,7 +127,7 @@ func (ab *AQBanking) Transactions(acc *Account, from *time.Time, to *time.Time) 
 	defer C.AB_ImExporterContext_free(abContext)
 
 	if err := C.AB_Banking_ExecuteJobs(ab.ptr, abJobList, abContext); err != 0 {
-		return nil, fmt.Errorf("Unable to execute Transactions: %d", err)
+		return nil, fmt.Errorf("unable to execute Transactions: %d", err)
 	}
 
 	status := C.AB_Job_GetStatus(abJob)
@@ -139,7 +139,7 @@ func (ab *AQBanking) Transactions(acc *Account, from *time.Time, to *time.Time) 
 	var transactions []Transaction
 
 	if abInfo == nil {
-		return nil, fmt.Errorf("Unable to get first account info")
+		return nil, fmt.Errorf("unable to get first account info")
 	}
 
 	for abInfo != nil {

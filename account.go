@@ -107,7 +107,7 @@ func (ab *AQBanking) Accounts() (AccountCollection, error) {
 
 	abIterator := C.AB_Account_List2_First(abAccountList)
 	if abIterator == nil {
-		return nil, errors.New("Unable to get account iterator")
+		return nil, errors.New("unable to get account iterator")
 	}
 
 	abAccount := C.AB_Account_List2Iterator_Data(abIterator)

@@ -226,7 +226,7 @@ func (ab *AQBanking) Users() (*UserCollection, error) {
 
 	abIterator := C.AB_User_List2_First(abUserList)
 	if abIterator == nil {
-		return nil, errors.New("Unable to get user iterator")
+		return nil, errors.New("unable to get user iterator")
 	}
 
 	var abUser *C.AB_USER
