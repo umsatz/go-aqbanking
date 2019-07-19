@@ -79,7 +79,7 @@ func (ab *AQBanking) AddPinTanUser(user *User) error {
 		return errors.New("no server_url given")
 	}
 
-	if _, ok := supportedHBCIVersions[user.HbciVersion]; ok != true {
+	if _, ok := supportedHBCIVersions[user.HbciVersion]; !ok {
 		return fmt.Errorf("hbci version %d is not supported", user.HbciVersion)
 	}
 
@@ -229,8 +229,7 @@ func (ab *AQBanking) Users() (*UserCollection, error) {
 		return nil, errors.New("unable to get user iterator")
 	}
 
-	var abUser *C.AB_USER
-	abUser = C.AB_User_List2Iterator_Data(abIterator)
+	abUser := C.AB_User_List2Iterator_Data(abIterator)
 
 	for i := 0; abUser != nil; i++ {
 		collection.Users[i] = newUser(abUser)
