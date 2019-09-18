@@ -56,7 +56,7 @@ func newGui(interactive bool) *gui {
 	C.GWEN_Gui_SetCharSet(abGui, C.CString("UTF-8"))
 	C.GWEN_Gui_SetGui(abGui)
 
-	C.GWEN_Gui_SetGetPasswordFn(abGui, (C.GWEN_GUI_GETPASSWORD_FN)(unsafe.Pointer(C.goAqbankingGetPasswordFn_cgo)))
+	C.GWEN_Gui_SetGetPasswordFn(abGui, (C.GWEN_GUI_GETPASSWORD_FN)(C.goAqbankingGetPasswordFn_cgo))
 
 	return &gui{
 		abGui,
