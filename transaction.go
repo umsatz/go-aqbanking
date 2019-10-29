@@ -18,21 +18,22 @@ import "C"
 
 // Transaction represents an aqbanking transaction
 type Transaction struct {
-	Type              string
+	Type           string
+	SubType        string
+	Status         string
+	TransactionKey string
+
 	Purpose           string
 	Text              string
-	Status            string
 	Date              time.Time
 	ValutaDate        time.Time
 	CustomerReference string
 	EndToEndReference string
-	Total             float32
-	TotalCurrency     string
-	Fee               float32
-	FeeCurrency       string
+	Value             Value
+	Fee               Value
 
-	MandateID     string
-	BandReference string
+	MandateID   string
+	MandateDate *time.Time
 
 	LocalBankCode      string
 	LocalAccountNumber string
@@ -47,6 +48,19 @@ type Transaction struct {
 	RemoteName          string
 }
 
+// Value is an amount with an optional currency
+type Value struct {
+	Amount   float32
+	Currency string
+}
+
+func newValue(value *C.AB_VALUE) Value {
+	return Value{
+		Amount:   float32(C.AB_Value_GetValueAsDouble(value)),
+		Currency: C.GoString(C.AB_Value_GetCurrency(value)),
+	}
+}
+
 func newTransaction(t *C.AB_TRANSACTION) *Transaction {
 	v := C.AB_Transaction_GetValue(t)
 
@@ -55,10 +69,13 @@ func newTransaction(t *C.AB_TRANSACTION) *Transaction {
 	}
 
 	transaction := Transaction{
-		Type:              C.GoString(C.AB_Transaction_GetPurpose(t)),
+		Type:           C.GoString(C.AB_Transaction_Type_toString(C.AB_Transaction_GetType(t))),
+		SubType:        C.GoString(C.AB_Transaction_SubType_toString(C.AB_Transaction_GetSubType(t))),
+		Status:         C.GoString(C.AB_Transaction_Status_toString(C.AB_Transaction_GetStatus(t))),
+		TransactionKey: C.GoString(C.AB_Transaction_GetTransactionKey(t)),
+
 		Purpose:           C.GoString(C.AB_Transaction_GetPurpose(t)),
 		Text:              C.GoString(C.AB_Transaction_GetTransactionText(t)),
-		Status:            C.GoString(C.AB_Transaction_Status_toString(C.AB_Transaction_GetStatus(t))),
 		CustomerReference: C.GoString(C.AB_Transaction_GetCustomerReference(t)),
 		EndToEndReference: C.GoString(C.AB_Transaction_GetEndToEndReference(t)),
 		MandateID:         C.GoString(C.AB_Transaction_GetMandateId(t)),
@@ -66,8 +83,7 @@ func newTransaction(t *C.AB_TRANSACTION) *Transaction {
 		Date:       gwenDateToTime(C.AB_Transaction_GetDate(t)),
 		ValutaDate: gwenDateToTime(C.AB_Transaction_GetValutaDate(t)),
 
-		Total:         float32(C.AB_Value_GetValueAsDouble(v)),
-		TotalCurrency: C.GoString(C.AB_Value_GetCurrency(v)),
+		Value: newValue(v),
 
 		LocalIBAN:          C.GoString(C.AB_Transaction_GetLocalIban(t)),
 		LocalBIC:           C.GoString(C.AB_Transaction_GetLocalBic(t)),
@@ -82,9 +98,13 @@ func newTransaction(t *C.AB_TRANSACTION) *Transaction {
 		RemoteName:          C.GoString(C.AB_Transaction_GetRemoteName(t)),
 	}
 
+	if date := C.AB_Transaction_GetMandateDate(t); date != nil {
+		time := gwenDateToTime(date)
+		transaction.MandateDate = &time
+	}
+
 	if fees := C.AB_Transaction_GetFees(t); fees != nil {
-		transaction.Fee = float32(C.AB_Value_GetValueAsDouble(fees))
-		transaction.FeeCurrency = C.GoString(C.AB_Value_GetCurrency(fees))
+		transaction.Fee = newValue(fees)
 	}
 
 	return &transaction

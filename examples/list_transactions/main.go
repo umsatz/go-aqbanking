@@ -85,7 +85,7 @@ RemoteBIC: %v
 RemoteName: %v
 Date: %v
 ValutaDate: %v
-Total: %2.2f %v
+Value: %2.2f %v
 Fee: %2.2f %v
 `, t.Type,
 			t.Text,
@@ -104,8 +104,8 @@ Fee: %2.2f %v
 			t.RemoteName,
 			t.Date,
 			t.ValutaDate,
-			t.Total, t.TotalCurrency,
-			t.Fee, t.FeeCurrency,
+			t.Value.Amount, t.Value.Currency,
+			t.Fee.Amount, t.Fee.Currency,
 		)
 	}
 }
