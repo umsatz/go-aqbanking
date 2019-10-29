@@ -16,17 +16,12 @@ func main() {
 	}
 	defer aq.Free()
 
-	fmt.Printf("using aqbanking %d.%d.%d\n",
-		aq.Version.Major,
-		aq.Version.Minor,
-		aq.Version.Patchlevel,
-	)
+	fmt.Println("using aqbanking", aq.Version)
 
 	for _, pin := range examples.LoadPins("pins.json") {
 		aq.RegisterPin(pin)
 	}
 
-	listUsers(aq)
 	listAccounts(aq)
 	listTransactions(aq)
 }
@@ -46,7 +41,6 @@ Currency: %v
 Country: %v
 AccountNumber: %v
 BankCode: %v
-Bank: %v
 IBAN: %v
 BIC: %v
 `,
@@ -55,33 +49,9 @@ BIC: %v
 			account.Currency,
 			account.Country,
 			account.AccountNumber,
-			account.Bank.BankCode,
-			account.Bank.Name,
+			account.BankCode,
 			account.IBAN,
 			account.BIC,
-		)
-	}
-}
-
-func listUsers(ab *aqb.AQBanking) {
-	userCollection, err := ab.Users()
-	if err != nil {
-		log.Fatalf("unable to list users: %v", err)
-	}
-	defer userCollection.Free()
-
-	fmt.Println("%%\nUsers")
-	for _, user := range userCollection.Users {
-		fmt.Printf(`
-## %v
-Name: %v
-UserId: %v
-CustomerId: %v
-`,
-			user.ID,
-			user.Name,
-			user.UserID,
-			user.CustomerID,
 		)
 	}
 }
@@ -100,6 +70,7 @@ func listTransactionsFor(ab *aqb.AQBanking, account *aqb.Account) {
 		fmt.Printf(`
 ## %v
 '%v'
+Purpose: %v
 Status: %v
 CustomerReference: %v
 LocalBankCode: %v
@@ -116,8 +87,9 @@ Date: %v
 ValutaDate: %v
 Total: %2.2f %v
 Fee: %2.2f %v
-`, t.Purpose,
+`, t.Type,
 			t.Text,
+			t.Purpose,
 			t.Status,
 			t.CustomerReference,
 			t.LocalBankCode,

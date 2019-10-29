@@ -3,12 +3,12 @@ package aqbanking
 /*
 #cgo LDFLAGS: -laqbanking
 #cgo LDFLAGS: -lgwenhywfar
-#cgo darwin CFLAGS: -I/usr/local/include/gwenhywfar4
-#cgo darwin CFLAGS: -I/usr/local/include/aqbanking5
-#cgo linux CFLAGS: -I/usr/include/gwenhywfar4
-#cgo linux CFLAGS: -I/usr/include/aqbanking5
+#cgo darwin CFLAGS: -I/usr/local/include/gwenhywfar5
+#cgo darwin CFLAGS: -I/usr/local/include/aqbanking6
+#cgo linux CFLAGS: -I/usr/include/gwenhywfar5
+#cgo linux CFLAGS: -I/usr/include/aqbanking6
 #include <gwenhywfar/cgui.h>
-#include <aqbanking/abgui.h>
+#include <aqbanking/gui/abgui.h>
 #include <gwenhywfar/gwenhywfar.h>
 
 // forward declaration to allow cgui.go to use our go callback fnc
