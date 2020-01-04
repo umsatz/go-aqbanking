@@ -2,34 +2,31 @@ package aqbanking
 
 /*
 #cgo LDFLAGS: -lgwenhywfar
-#cgo darwin CFLAGS: -I/usr/local/include/gwenhywfar4
-#cgo linux CFLAGS: -I/usr/include/gwenhywfar4
-#include <gwenhywfar/stringlist.h>
-#include <gwenhywfar/gwentime.h>
+#cgo darwin CFLAGS: -I/usr/local/include/gwenhywfar5
+#cgo linux CFLAGS: -I/usr/include/gwenhywfar5
+#include <gwenhywfar/gwendate.h>
 */
 import "C"
 import "time"
 
-type gwStringList C.GWEN_STRINGLIST
+type gwDate C.GWEN_DATE
 
-func (list *gwStringList) toSlice() []string {
-	var s []string
-	size := int(C.GWEN_StringList_Count((*C.GWEN_STRINGLIST)(list)))
-	for i := 0; i < size; i++ {
-		l := C.GoString(C.GWEN_StringList_StringAt((*C.GWEN_STRINGLIST)(list), C.int(i)))
-		s = append(s, l)
-	}
-	return s
+func (date *gwDate) toTime() time.Time {
+	return time.Unix(int64(C.GWEN_Date_toLocalTime((*C.GWEN_DATE)(date))), 0)
 }
 
-type gwTime C.GWEN_TIME
-
-func (gt *gwTime) toTime() time.Time {
-	seconds := int64(C.GWEN_Time_Seconds((*C.GWEN_TIME)(gt)))
-	return time.Unix(seconds, 0)
+func (date *gwDate) String() string {
+	return C.GoString(C.GWEN_Date_GetString((*C.GWEN_DATE)(date)))
 }
 
-func newGwenTime(date time.Time) *gwTime {
-	utcDate := date.UTC()
-	return (*gwTime)(C.GWEN_Time_fromSeconds(C.uint32_t(utcDate.Unix())))
+func newGwenDate(date time.Time) *gwDate {
+	return (*gwDate)(C.GWEN_Date_fromGregorian(
+		C.int(date.Year()),
+		C.int(date.Month()),
+		C.int(date.Day()),
+	))
+}
+
+func gwenDateToTime(in *C.GWEN_DATE) time.Time {
+	return (*gwDate)(in).toTime()
 }

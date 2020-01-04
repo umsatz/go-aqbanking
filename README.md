@@ -7,6 +7,14 @@ golang wrapper for aqbanking C library
 
 go run !(*_test).go
 
+## Dependencies
+
+If you are running Ubuntu 18.04:
+
+    sudo add-apt-repository ppa:ingo/gnucash
+    sudo apt-get update
+    sudo apt-get install libgwenhywfar-core-dev libaqbanking43
+
 ## A note about parallelization
 
 - You may not have more than one instance of AQBanking per process.

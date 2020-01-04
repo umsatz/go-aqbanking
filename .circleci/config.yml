@@ -3,9 +3,13 @@ jobs:
   build:
     working_directory: /go/src/github.com/umsatz/go-aqbanking
     docker:
-      - image: circleci/golang:1.13-buster
+      - image: quay.io/cybozu/golang:1.13-bionic
     steps:
+      - run: apt-get update -q
+      - run: apt-get install -qq software-properties-common
+      - run: add-apt-repository ppa:ingo/gnucash
+      - run: apt-get update -q
+      - run: apt-get install -qq libaqbanking-dev libaqbanking43 libgwenhywfar-core-dev
       - checkout
-      - run: sudo apt-get install -qq libaqbanking-dev
       - run: go get -v -t -d ./...
       - run: go test -v ./...

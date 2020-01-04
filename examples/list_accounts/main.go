@@ -17,25 +17,10 @@ func main() {
 	}
 	defer aq.Free()
 
-	fmt.Printf("using aqbanking %d.%d.%d\n",
-		aq.Version.Major,
-		aq.Version.Minor,
-		aq.Version.Patchlevel,
-	)
+	fmt.Println("using aqbanking", aq.Version)
 
 	for _, pin := range examples.LoadPins("pins.json") {
 		aq.RegisterPin(pin)
-	}
-
-	userCollection, err := aq.Users()
-	if err != nil {
-		log.Fatalf("unable to list users: %v", err)
-	}
-	defer userCollection.Free()
-	fmt.Printf("found %d users.\n", len(userCollection.Users))
-
-	for _, user := range userCollection.Users {
-		fmt.Printf("User %d\n", user.ID)
 	}
 
 	accountCollection, err := aq.Accounts()
